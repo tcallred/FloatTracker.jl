@@ -33,4 +33,12 @@ tr_test2 = map(v -> map(x -> TrackedFloat16(x), v), test2)
 println(test2)
 # println(gs(test))
 println(gs(tr_test2))
+for vector in gs(tr_test2) 
+  for x in vector
+    println(x)
+    if isnan(x.val)
+      println(x.journey)
+    end
+  end
+end
 

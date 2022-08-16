@@ -1,14 +1,26 @@
-function log_message(op, args, result) :: String
-  if all(arg -> !isnan(arg), args) && isnan(result)
-    return "Gen: $args -> $op -> $result"
-  elseif any(arg -> isnan(arg), args) && isnan(result)
-    return "Prop: $args -> $op -> $result"
-  elseif any(arg -> isnan(arg), args) && !isnan(result)
-    return "Kill: $args -> $op -> $result"
-  end
+abstract type AbstractTrackedFloat <: AbstractFloat end
+
+struct Event
+  evt_type::Symbol
+  op::String
+  args::Array{Any}
+  result::AbstractFloat
 end
 
-abstract type AbstractTrackedFloat <: AbstractFloat end
+function event(op, args, result) :: Event
+  evt_type = 
+    if all(arg -> !isnan(arg), args) && isnan(result)
+      :gen
+    elseif any(arg -> isnan(arg), args) && isnan(result)
+      :prop
+    elseif any(arg -> isnan(arg), args) && !isnan(result)
+      :kill
+    end
+
+  Event(evt_type, op, args, result)
+end
+
+# Base.show(io::IO, e::Event) = print(io,"$e.evt_type: $e.args -> $e.op -> $e.result")
 
 for TrackedFloatN in (:TrackedFloat16, :TrackedFloat32, :TrackedFloat64)
 
@@ -18,20 +30,34 @@ for TrackedFloatN in (:TrackedFloat16, :TrackedFloat32, :TrackedFloat64)
 @eval begin 
   struct $TrackedFloatN <: AbstractTrackedFloat
     val::$FloatN
+    journey::Array{Event}
   end
+
+  Base.Float64(x::$TrackedFloatN) = Float64(x.val)
+  Base.Float32(x::$TrackedFloatN) = Float32(x.val)
+  Base.Float16(x::$TrackedFloatN) = Float16(x.val)
+  Base.Int64(x::$TrackedFloatN) = Int64(x.val)
+  Base.Int32(x::$TrackedFloatN) = Int32(x.val)
+  Base.Int16(x::$TrackedFloatN) = Int16(x.val)
 
   Base.bitstring(x::$TrackedFloatN) = bitstring(x.val)
   Base.show(io::IO,x::$TrackedFloatN) = print(io ,$TrackedFloatN,"(",string(x.val),")")
 
+  $TrackedFloatN(x::AbstractFloat) = $TrackedFloatN(x, [])
+  $TrackedFloatN(x::Integer) = $TrackedFloatN(x, [])
+
 end
+
 
 for O in (:(+), :(-), :(*), :(/), :(^))
     @eval function Base.$O(x::$TrackedFloatN,y::$TrackedFloatN)
         r = $O(x.val, y.val)
         if any(v -> isnan(v), [x.val, y.val, r]) 
-          println(log_message(string($O), [x.val, y.val], r))
+          e = event(string($O), [x.val, y.val], r)
+          j = [x.journey; y.journey; e] 
+          return $TrackedFloatN(r, j)
         end
-        $TrackedFloatN(r)
+        $TrackedFloatN(r, [])
     end
 end
 
@@ -54,9 +80,11 @@ for O in (:(-), :(+),
     @eval function Base.$O(x::$TrackedFloatN)
         r = $O(x.val)
         if any(v -> isnan(v), [x.val, r]) 
-          println(log_message(string($O), [x.val], r))
+          e = event(string($O), [x.val], r)
+          j = [x.journey; e] 
+          return $TrackedFloatN(r, j)
         end
-        $TrackedFloatN(r)
+        $TrackedFloatN(r, [])
     end
 end
 
@@ -64,7 +92,11 @@ for O in (:(<), :(<=))
     @eval function Base.$O(x::$TrackedFloatN, y::$TrackedFloatN)
       r = $O(x.val, y.val)
       if any(v -> isnan(v), [x.val, y.val]) 
-        println(log_message(string($O), [x.val, y.val], r))
+          e = event(string($O), [x.val, y.val], r)
+          j = [x.journey; y.journey; e] 
+          for evt in j 
+            println(evt)
+          end
       end
       r
     end
