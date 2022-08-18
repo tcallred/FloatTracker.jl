@@ -45,7 +45,14 @@ for TrackedFloatN in (:TrackedFloat16, :TrackedFloat32, :TrackedFloat64)
 
   $TrackedFloatN(x::AbstractFloat) = $TrackedFloatN(x, [])
   $TrackedFloatN(x::Integer) = $TrackedFloatN(x, [])
+  $TrackedFloatN(x::Bool)= if x $TrackedFloatN(1, []) else $TrackedFloatN(0, []) end
 
+
+  Base.promote_rule(::Type{<:Integer},::Type{$TrackedFloatN}) = $TrackedFloatN
+  Base.promote_rule(::Type{Float64},::Type{$TrackedFloatN}) = $TrackedFloatN
+  Base.promote_rule(::Type{Float32},::Type{$TrackedFloatN}) = $TrackedFloatN
+  Base.promote_rule(::Type{Float16},::Type{$TrackedFloatN}) = $TrackedFloatN 
+  Base.promote_rule(::Type{Bool},::Type{$TrackedFloatN}) = $TrackedFloatN 
 end
 
 
@@ -87,6 +94,8 @@ for O in (:(-), :(+),
         $TrackedFloatN(r, [])
     end
 end
+
+@eval Base.eps(::Type{$TrackedFloatN}) = eps($FloatN)
 
 for O in (:(<), :(<=))
     @eval function Base.$O(x::$TrackedFloatN, y::$TrackedFloatN)
