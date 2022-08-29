@@ -1,19 +1,22 @@
-abstract type AbstractTrackedFloat <: AbstractFloat end
+
+function isfloaterror(x)
+  isnan(x) || isinf(x) || issubnormal(x)
+end
 
 struct Event
   evt_type::Symbol
   op::String
   args::Array{Any}
-  result::AbstractFloat
+  result::Any
 end
 
 function event(op, args, result) :: Event
   evt_type = 
-    if all(arg -> !isnan(arg), args) && isnan(result)
+    if all(arg -> !isfloaterror(arg), args) && isfloaterror(result)
       :gen
-    elseif any(arg -> isnan(arg), args) && isnan(result)
+    elseif any(arg -> isfloaterror(arg), args) && isfloaterror(result)
       :prop
-    elseif any(arg -> isnan(arg), args) && !isnan(result)
+    elseif any(arg -> isfloaterror(arg), args) && !isfloaterror(result)
       :kill
     end
 
@@ -21,6 +24,8 @@ function event(op, args, result) :: Event
 end
 
 # Base.show(io::IO, e::Event) = print(io,"$e.evt_type: $e.args -> $e.op -> $e.result")
+
+abstract type AbstractTrackedFloat <: AbstractFloat end
 
 for TrackedFloatN in (:TrackedFloat16, :TrackedFloat32, :TrackedFloat64)
 
@@ -56,11 +61,12 @@ for TrackedFloatN in (:TrackedFloat16, :TrackedFloat32, :TrackedFloat64)
 end
 
 
-for O in (:(+), :(-), :(*), :(/), :(^))
+for O in (:(+), :(-), :(*), :(/), :(^), :min, :max)
     @eval function Base.$O(x::$TrackedFloatN,y::$TrackedFloatN)
         r = $O(x.val, y.val)
-        if any(v -> isnan(v), [x.val, y.val, r]) 
+        if any(v -> isfloaterror(v), [x.val, y.val, r]) 
           e = event(string($O), [x.val, y.val], r)
+          # println(e)
           j = [x.journey; y.journey; e] 
           return $TrackedFloatN(r, j)
         end
@@ -86,8 +92,9 @@ for O in (:(-), :(+),
          )
     @eval function Base.$O(x::$TrackedFloatN)
         r = $O(x.val)
-        if any(v -> isnan(v), [x.val, r]) 
+        if any(v -> isfloaterror(v), [x.val, r]) 
           e = event(string($O), [x.val], r)
+          # println(e)
           j = [x.journey; e] 
           return $TrackedFloatN(r, j)
         end
@@ -95,17 +102,33 @@ for O in (:(-), :(+),
     end
 end
 
+for O in (:isnan, :isinf, :issubnormal)
+  @eval function Base.$O(x::$TrackedFloatN)
+      r = $O(x.val)
+      if any(v -> isfloaterror(v), [x.val]) 
+          e = event(string($O), [x.val], r)
+          # println(e)
+          j = [x.journey; e] 
+          # for evt in j 
+          #   println(evt)
+          # end
+      end
+      r
+  end
+end
+
 @eval Base.eps(::Type{$TrackedFloatN}) = eps($FloatN)
 
 for O in (:(<), :(<=))
     @eval function Base.$O(x::$TrackedFloatN, y::$TrackedFloatN)
       r = $O(x.val, y.val)
-      if any(v -> isnan(v), [x.val, y.val]) 
+      if any(v -> isfloaterror(v), [x.val, y.val]) 
           e = event(string($O), [x.val, y.val], r)
+          # println(e)
           j = [x.journey; y.journey; e] 
-          for evt in j 
-            println(evt)
-          end
+          # for evt in j 
+          #   println(evt)
+          # end
       end
       r
     end
