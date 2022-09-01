@@ -1,30 +1,3 @@
-
-function isfloaterror(x)
-  isnan(x) || isinf(x) || issubnormal(x)
-end
-
-struct Event
-  evt_type::Symbol
-  op::String
-  args::Array{Any}
-  result::Any
-end
-
-function event(op, args, result) :: Event
-  evt_type = 
-    if all(arg -> !isfloaterror(arg), args) && isfloaterror(result)
-      :gen
-    elseif any(arg -> isfloaterror(arg), args) && isfloaterror(result)
-      :prop
-    elseif any(arg -> isfloaterror(arg), args) && !isfloaterror(result)
-      :kill
-    end
-
-  Event(evt_type, op, args, result)
-end
-
-# Base.show(io::IO, e::Event) = print(io,"$e.evt_type: $e.args -> $e.op -> $e.result")
-
 abstract type AbstractTrackedFloat <: AbstractFloat end
 
 for TrackedFloatN in (:TrackedFloat16, :TrackedFloat32, :TrackedFloat64)
@@ -52,7 +25,6 @@ for TrackedFloatN in (:TrackedFloat16, :TrackedFloat32, :TrackedFloat64)
   $TrackedFloatN(x::Integer) = $TrackedFloatN(x, [])
   $TrackedFloatN(x::Bool)= if x $TrackedFloatN(1, []) else $TrackedFloatN(0, []) end
 
-
   Base.promote_rule(::Type{<:Integer},::Type{$TrackedFloatN}) = $TrackedFloatN
   Base.promote_rule(::Type{Float64},::Type{$TrackedFloatN}) = $TrackedFloatN
   Base.promote_rule(::Type{Float32},::Type{$TrackedFloatN}) = $TrackedFloatN
@@ -60,14 +32,13 @@ for TrackedFloatN in (:TrackedFloat16, :TrackedFloat32, :TrackedFloat64)
   Base.promote_rule(::Type{Bool},::Type{$TrackedFloatN}) = $TrackedFloatN 
 end
 
-
 for O in (:(+), :(-), :(*), :(/), :(^), :min, :max)
     @eval function Base.$O(x::$TrackedFloatN,y::$TrackedFloatN)
         r = $O(x.val, y.val)
         if any(v -> isfloaterror(v), [x.val, y.val, r]) 
           e = event(string($O), [x.val, y.val], r)
-          # println(e)
-          j = [x.journey; y.journey; e] 
+          log_event(e)
+          j = [x.journey; e] 
           return $TrackedFloatN(r, j)
         end
         $TrackedFloatN(r, [])
@@ -94,7 +65,7 @@ for O in (:(-), :(+),
         r = $O(x.val)
         if any(v -> isfloaterror(v), [x.val, r]) 
           e = event(string($O), [x.val], r)
-          # println(e)
+          log_event(e)
           j = [x.journey; e] 
           return $TrackedFloatN(r, j)
         end
@@ -107,8 +78,9 @@ for O in (:isnan, :isinf, :issubnormal)
       r = $O(x.val)
       if any(v -> isfloaterror(v), [x.val]) 
           e = event(string($O), [x.val], r)
+          log_event(e)
           # println(e)
-          j = [x.journey; e] 
+          # j = [x.journey; e] 
           # for evt in j 
           #   println(evt)
           # end
@@ -124,8 +96,9 @@ for O in (:(<), :(<=))
       r = $O(x.val, y.val)
       if any(v -> isfloaterror(v), [x.val, y.val]) 
           e = event(string($O), [x.val, y.val], r)
+          log_event(e)
           # println(e)
-          j = [x.journey; y.journey; e] 
+          # j = [x.journey; e] 
           # for evt in j 
           #   println(evt)
           # end
