@@ -8,7 +8,7 @@ for TrackedFloatN in (:TrackedFloat16, :TrackedFloat32, :TrackedFloat64)
 @eval begin 
   struct $TrackedFloatN <: AbstractTrackedFloat
     val::$FloatN
-    journey::Array{Event}
+    # journey::Array{Event}
   end
 
   Base.Float64(x::$TrackedFloatN) = Float64(x.val)
@@ -19,11 +19,11 @@ for TrackedFloatN in (:TrackedFloat16, :TrackedFloat32, :TrackedFloat64)
   Base.Int16(x::$TrackedFloatN) = Int16(x.val)
 
   Base.bitstring(x::$TrackedFloatN) = bitstring(x.val)
-  Base.show(io::IO,x::$TrackedFloatN) = print(io ,$TrackedFloatN,"(",string(x.val),")")
+  Base.show(io::IO,x::$TrackedFloatN) = print(io, $TrackedFloatN,"(",string(x.val),")")
 
-  $TrackedFloatN(x::AbstractFloat) = $TrackedFloatN(x, [])
-  $TrackedFloatN(x::Integer) = $TrackedFloatN(x, [])
-  $TrackedFloatN(x::Bool)= if x $TrackedFloatN(1, []) else $TrackedFloatN(0, []) end
+  # $TrackedFloatN(x::AbstractFloat) = $TrackedFloatN(x)
+  # $TrackedFloatN(x::Integer) = $TrackedFloatN(x)
+  $TrackedFloatN(x::Bool)= if x $TrackedFloatN(1) else $TrackedFloatN(0) end
 
   Base.promote_rule(::Type{<:Integer},::Type{$TrackedFloatN}) = $TrackedFloatN
   Base.promote_rule(::Type{Float64},::Type{$TrackedFloatN}) = $TrackedFloatN
@@ -38,10 +38,10 @@ for O in (:(+), :(-), :(*), :(/), :(^), :min, :max)
         if any(v -> isfloaterror(v), [x.val, y.val, r]) 
           e = event(string($O), [x.val, y.val], r)
           log_event(e)
-          j = [x.journey; e] 
-          return $TrackedFloatN(r, j)
+          # j = [x.journey; e] 
+          return $TrackedFloatN(r)
         end
-        $TrackedFloatN(r, [])
+        $TrackedFloatN(r)
     end
 end
 
@@ -66,10 +66,10 @@ for O in (:(-), :(+),
         if any(v -> isfloaterror(v), [x.val, r]) 
           e = event(string($O), [x.val], r)
           log_event(e)
-          j = [x.journey; e] 
-          return $TrackedFloatN(r, j)
+          # j = [x.journey; e] 
+          return $TrackedFloatN(r)
         end
-        $TrackedFloatN(r, [])
+        $TrackedFloatN(r)
     end
 end
 
