@@ -1,5 +1,5 @@
 include("../src/FloatTracker.jl")
-using .FloatTracker: TrackedFloat64, print_log
+using .FloatTracker: TrackedFloat64, write_log_to_file
 using LinearAlgebra
 using SparseArrays
 using IterativeSolvers
@@ -20,4 +20,4 @@ B = [TrackedFloat64(1e-1021), TrackedFloat64(3e-2021), TrackedFloat64(1e-1021)]
 # B = [1.0,3.0,2.0]
 
 println(IterativeSolvers.cg(A, B))
-print_log()
+write_log_to_file()
