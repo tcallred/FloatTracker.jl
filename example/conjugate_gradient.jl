@@ -9,7 +9,7 @@ A = sparse([TrackedFloat64(1), TrackedFloat64(1), TrackedFloat64(2), TrackedFloa
            [TrackedFloat64(0), TrackedFloat64(1), TrackedFloat64(2), TrackedFloat64(0)]
         )
 
-B = [TrackedFloat64(1e-1021), TrackedFloat64(3e-2021), TrackedFloat64(1e-1021)]
+B = [TrackedFloat64(1e-300), TrackedFloat64(3e-300), TrackedFloat64(1e-300)]
 
 
 # A = sparse([1.0,1.0,2.0,3.0], 
