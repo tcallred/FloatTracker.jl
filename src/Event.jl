@@ -1,5 +1,5 @@
 
-function isfloaterror(x)
+@inline function isfloaterror(x)
   x isa AbstractFloat && (isnan(x) || isinf(x) || issubnormal(x))
 end
 
