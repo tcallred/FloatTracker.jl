@@ -1,6 +1,6 @@
 module FloatTracker
 
-export TrackedFloat16, TrackedFloat32, TrackedFloat64, print_log, write_log_to_file
+export TrackedFloat16, TrackedFloat32, TrackedFloat64, print_log, write_log_to_file, set_inject_nan
 import Base
 
 include("Event.jl")

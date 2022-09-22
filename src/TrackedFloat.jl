@@ -1,5 +1,11 @@
 abstract type AbstractTrackedFloat <: AbstractFloat end
 
+injectnans = false
+
+function set_inject_nan(v::Bool) 
+  global injectnans = v
+end
+
 for TrackedFloatN in (:TrackedFloat16, :TrackedFloat32, :TrackedFloat64)
 
 # FloatN is the base float type derived from TrackedFloatN 
@@ -23,6 +29,7 @@ for TrackedFloatN in (:TrackedFloat16, :TrackedFloat32, :TrackedFloat64)
 
   # $TrackedFloatN(x::AbstractFloat) = $TrackedFloatN(x)
   # $TrackedFloatN(x::Integer) = $TrackedFloatN(x)
+  $TrackedFloatN(x::$TrackedFloatN) = $TrackedFloatN(x.val)
   $TrackedFloatN(x::Bool)= if x $TrackedFloatN(1) else $TrackedFloatN(0) end
 
   Base.promote_rule(::Type{<:Integer},::Type{$TrackedFloatN}) = $TrackedFloatN
@@ -34,9 +41,13 @@ end
 
 for O in (:(+), :(-), :(*), :(/), :(^), :min, :max)
     @eval function Base.$O(x::$TrackedFloatN,y::$TrackedFloatN)
-        r = $O(x.val, y.val)
+      r = if injectnans && rand(1:10) == 1 
+        NaN
+      else
+        $O(x.val, y.val)
+      end
         if any(v -> isfloaterror(v), [x.val, y.val, r]) 
-          e = event(string($O), [x.val, y.val], r)
+         e = event(string($O), [x.val, y.val], r)
           log_event(e)
           # j = [x.journey; e] 
           return $TrackedFloatN(r)

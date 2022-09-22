@@ -16,10 +16,12 @@ function print_log()
   end
 end
 
-function write_log_to_file() 
-  open("floaterror_log_$(now()).txt", "w") do file
-    for e in logger.events
-      write(file, "$e\n\n")
+function write_log_to_file(;file_name="") 
+  if length(logger.events) > 0
+    open("$(file_name)_error_log_$(now()).txt", "w") do file
+      for e in logger.events
+        write(file, "$e\n\n")
+      end
     end
   end
 end
