@@ -107,7 +107,7 @@ end
 
 @eval Base.eps(::Type{$TrackedFloatN}) = eps($FloatN)
 
-for O in (:(<), :(<=))
+for O in (:(<), :(<=), :(==))
     @eval function Base.$O(x::$TrackedFloatN, y::$TrackedFloatN)
       r = $O(x.val, y.val)
       if any(v -> isfloaterror(v), [x.val, y.val]) 
