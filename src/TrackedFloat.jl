@@ -1,9 +1,13 @@
 abstract type AbstractTrackedFloat <: AbstractFloat end
 
-injectnans = false
+_injectnans = false
+_odds = 0
+_ninject = 0
 
-function set_inject_nan(v::Bool) 
-  global injectnans = v
+function set_inject_nan(should_inject::Bool, odds::Int = 10, n_inject = 1) 
+  global _injectnans = should_inject
+  global _odds = odds
+  global _ninject = n_inject
 end
 
 for TrackedFloatN in (:TrackedFloat16, :TrackedFloat32, :TrackedFloat64)
@@ -41,13 +45,14 @@ end
 
 for O in (:(+), :(-), :(*), :(/), :(^), :min, :max)
     @eval function Base.$O(x::$TrackedFloatN,y::$TrackedFloatN)
-      r = if injectnans && rand(1:10) == 1 
-        NaN
+      (r, injected) = if _injectnans && _ninject > 0 && rand(1:_odds) == 1 
+        global _ninject = _ninject - 1
+        (NaN, true)
       else
-        $O(x.val, y.val)
+        ($O(x.val, y.val), false)
       end
         if any(v -> isfloaterror(v), [x.val, y.val, r]) 
-         e = event(string($O), [x.val, y.val], r)
+         e = event(string($O), [x.val, y.val], r, injected)
           log_event(e)
           # j = [x.journey; e] 
           return $TrackedFloatN(r)

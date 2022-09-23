@@ -6,8 +6,11 @@ end
 
 logger = Logger([])
 
-function log_event(evt::Event) 
+function log_event(evt::Event, should_print = false) 
   push!(logger.events, to_string(evt))
+  if should_print 
+    println(to_string(evt))
+  end
 end
 
 function print_log()
@@ -16,7 +19,7 @@ function print_log()
   end
 end
 
-function write_log_to_file(;file_name="") 
+function write_log_to_file(;file_name="filename") 
   if length(logger.events) > 0
     open("$(file_name)_error_log_$(now()).txt", "w") do file
       for e in logger.events

@@ -4,7 +4,7 @@ using LinearAlgebra
 using SparseArrays
 using IterativeSolvers
 
-set_inject_nan(true)
+set_inject_nan(true, 10, 1)
 
 A = sparse([TrackedFloat64(1), TrackedFloat64(1), TrackedFloat64(2), TrackedFloat64(3)], 
            [TrackedFloat64(1), TrackedFloat64(3), TrackedFloat64(2), TrackedFloat64(3)], 

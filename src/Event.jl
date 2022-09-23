@@ -11,9 +11,11 @@ struct Event
   trace::StackTraces.StackTrace
 end
 
-function event(op, args, result) :: Event
+function event(op, args, result, is_injected = false) :: Event
   evt_type = 
-    if all(arg -> !isfloaterror(arg), args) && isfloaterror(result)
+    if is_injected 
+      :injected
+    elseif all(arg -> !isfloaterror(arg), args) && isfloaterror(result)
       :gen
     elseif any(arg -> isfloaterror(arg), args) && isfloaterror(result)
       :prop
