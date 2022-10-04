@@ -34,7 +34,7 @@ for TrackedFloatN in (:TrackedFloat16, :TrackedFloat32, :TrackedFloat64)
   # $TrackedFloatN(x::AbstractFloat) = $TrackedFloatN(x)
   # $TrackedFloatN(x::Integer) = $TrackedFloatN(x)
   $TrackedFloatN(x::$TrackedFloatN) = $TrackedFloatN(x.val)
-  $TrackedFloatN(x::Bool)= if x $TrackedFloatN(1) else $TrackedFloatN(0) end
+  $TrackedFloatN(x::Bool) = $TrackedFloatN($FloatN(x))
 
   Base.promote_rule(::Type{<:Integer},::Type{$TrackedFloatN}) = $TrackedFloatN
   Base.promote_rule(::Type{Float64},::Type{$TrackedFloatN}) = $TrackedFloatN
