@@ -1,13 +1,37 @@
 abstract type AbstractTrackedFloat <: AbstractFloat end
 
-_injectnans = false
-_odds = 0
-_ninject = 0
+mutable struct Injector 
+  active::Bool
+  odds::Int
+  ninject::Int 
+  functions::Array{String}
+end
+
+function should_inject(i::Injector)
+  if i.active && i.ninject > 0 
+    roll = rand(1:i.odds)  
+    return roll == 1  
+  end
+  return false
+end
+
+function decrment_injections(i::Injector) 
+  i.ninject = i.ninject - 1
+end
+
+injector = Injector(false, 0, 0, [])
 
 function set_inject_nan(should_inject::Bool, odds::Int = 10, n_inject = 1) 
-  global _injectnans = should_inject
-  global _odds = odds
-  global _ninject = n_inject
+  injector.active = should_inject
+  injector.odds = odds
+  injector.ninject = n_inject
+end
+
+@inline function check_error(fn, args, result, injected::Bool = false) 
+  if any(v -> isfloaterror(v), [args..., result]) 
+    e = event(string(fn), args, result, injected)
+    log_event(e)
+  end
 end
 
 for TrackedFloatN in (:TrackedFloat16, :TrackedFloat32, :TrackedFloat64)
@@ -18,7 +42,6 @@ for TrackedFloatN in (:TrackedFloat16, :TrackedFloat32, :TrackedFloat64)
 @eval begin 
   struct $TrackedFloatN <: AbstractTrackedFloat
     val::$FloatN
-    # journey::Array{Event}
   end
 
   Base.Float64(x::$TrackedFloatN) = Float64(x.val)
@@ -46,19 +69,14 @@ end
 
 for O in (:(+), :(-), :(*), :(/), :(^), :min, :max, :rem)
     @eval function Base.$O(x::$TrackedFloatN,y::$TrackedFloatN)
-      (r, injected) = if _injectnans && _ninject > 0 && rand(1:_odds) == 1 
-        global _ninject = _ninject - 1
+      (r, injected) = if should_inject(injector)        
+        decrment_injections(injector)
         (NaN, true)
       else
         ($O(x.val, y.val), false)
       end
-        if any(v -> isfloaterror(v), [x.val, y.val, r]) 
-         e = event(string($O), [x.val, y.val], r, injected)
-          log_event(e)
-          # j = [x.journey; e] 
-          return $TrackedFloatN(r)
-        end
-        $TrackedFloatN(r)
+      check_error($O, [x.val, y.val], r, injected)
+      $TrackedFloatN(r)
     end
 end
 
@@ -79,41 +97,24 @@ for O in (:(-), :(+),
           :asind, :acosd, :atand, :acscd, :asecd, :acotd
          )
     @eval function Base.$O(x::$TrackedFloatN)
-        r = $O(x.val)
-        if any(v -> isfloaterror(v), [x.val, r]) 
-          e = event(string($O), [x.val], r)
-          log_event(e)
-          # j = [x.journey; e] 
-          return $TrackedFloatN(r)
-        end
-        $TrackedFloatN(r)
+      r = $O(x.val)
+      check_error($O, [x.val], r)
+      $TrackedFloatN(r)
     end
 end
 
 @eval function Base.round(x::$TrackedFloatN, digits::RoundingMode)
   r = round(x.val, digits)
-  if any(v -> isfloaterror(v), [x.val, r]) 
-    e = event(string(:round), [x.val], r)
-    log_event(e)
-    return $TrackedFloatN(r)
-  end
+  check_error(:round, [x.val], r)
   $TrackedFloatN(r)
 end
 
 
 for O in (:isnan, :isinf, :issubnormal)
   @eval function Base.$O(x::$TrackedFloatN)
-      r = $O(x.val)
-      if any(v -> isfloaterror(v), [x.val]) 
-          e = event(string($O), [x.val], r)
-          log_event(e)
-          # println(e)
-          # j = [x.journey; e] 
-          # for evt in j 
-          #   println(evt)
-          # end
-      end
-      r
+    r = $O(x.val)
+    check_error($O, [x.val], r)
+    r
   end
 end
 
@@ -122,15 +123,7 @@ end
 for O in (:(<), :(<=), :(==))
     @eval function Base.$O(x::$TrackedFloatN, y::$TrackedFloatN)
       r = $O(x.val, y.val)
-      if any(v -> isfloaterror(v), [x.val, y.val]) 
-          e = event(string($O), [x.val, y.val], r)
-          log_event(e)
-          # println(e)
-          # j = [x.journey; e] 
-          # for evt in j 
-          #   println(evt)
-          # end
-      end
+      check_error($O, [x.val, y.val], r)
       r
     end
 end
