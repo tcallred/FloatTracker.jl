@@ -33,6 +33,7 @@ for TrackedFloatN in (:TrackedFloat16, :TrackedFloat32, :TrackedFloat64)
 
   # $TrackedFloatN(x::AbstractFloat) = $TrackedFloatN(x)
   # $TrackedFloatN(x::Integer) = $TrackedFloatN(x)
+  $TrackedFloatN(x::Rational{}) = $TrackedFloatN($FloatN(x))
   $TrackedFloatN(x::$TrackedFloatN) = $TrackedFloatN(x.val)
   $TrackedFloatN(x::Bool) = $TrackedFloatN($FloatN(x))
 
@@ -43,7 +44,7 @@ for TrackedFloatN in (:TrackedFloat16, :TrackedFloat32, :TrackedFloat64)
   Base.promote_rule(::Type{Bool},::Type{$TrackedFloatN}) = $TrackedFloatN 
 end
 
-for O in (:(+), :(-), :(*), :(/), :(^), :min, :max)
+for O in (:(+), :(-), :(*), :(/), :(^), :min, :max, :rem)
     @eval function Base.$O(x::$TrackedFloatN,y::$TrackedFloatN)
       (r, injected) = if _injectnans && _ninject > 0 && rand(1:_odds) == 1 
         global _ninject = _ninject - 1
@@ -88,6 +89,17 @@ for O in (:(-), :(+),
         $TrackedFloatN(r)
     end
 end
+
+@eval function Base.round(x::$TrackedFloatN, digits::RoundingMode)
+  r = round(x.val, digits)
+  if any(v -> isfloaterror(v), [x.val, r]) 
+    e = event(string(:round), [x.val], r)
+    log_event(e)
+    return $TrackedFloatN(r)
+  end
+  $TrackedFloatN(r)
+end
+
 
 for O in (:isnan, :isinf, :issubnormal)
   @eval function Base.$O(x::$TrackedFloatN)
