@@ -1,3 +1,6 @@
+# bg: example from Flux.jl repo, test/ctc.jl
+# 
+
 using Test
 using Flux
 using Flux.Losses: ctc_loss
