@@ -1,10 +1,11 @@
 include("../src/FloatTracker.jl")
-using .FloatTracker: TrackedFloat64, write_log_to_file, set_inject_nan
+using .FloatTracker: TrackedFloat64, FunctionRef, write_log_to_file, set_inject_nan
 using LinearAlgebra
 using SparseArrays
 using IterativeSolvers
 
-set_inject_nan(true, 10, 1)
+fns = [FunctionRef(:norm2, Symbol("generic.jl"), 524)]
+set_inject_nan(true, 1, 1, fns)
 
 A = sparse([TrackedFloat64(1), TrackedFloat64(1), TrackedFloat64(2), TrackedFloat64(3)], 
            [TrackedFloat64(1), TrackedFloat64(3), TrackedFloat64(2), TrackedFloat64(3)], 

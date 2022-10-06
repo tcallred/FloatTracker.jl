@@ -20,8 +20,9 @@ function print_log()
 end
 
 function write_log_to_file(;file_name="filename") 
+  time = now().instant.periods.value % 99999999
   if length(logger.events) > 0
-    open("$(file_name)_error_log_$(now()).txt", "w") do file
+    open("$(file_name)_error_log_$(time).txt", "w") do file
       for e in logger.events
         write(file, "$e\n\n")
       end

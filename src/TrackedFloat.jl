@@ -1,30 +1,12 @@
 abstract type AbstractTrackedFloat <: AbstractFloat end
 
-mutable struct Injector 
-  active::Bool
-  odds::Int
-  ninject::Int 
-  functions::Array{String}
-end
-
-function should_inject(i::Injector)
-  if i.active && i.ninject > 0 
-    roll = rand(1:i.odds)  
-    return roll == 1  
-  end
-  return false
-end
-
-function decrment_injections(i::Injector) 
-  i.ninject = i.ninject - 1
-end
-
 injector = Injector(false, 0, 0, [])
 
-function set_inject_nan(should_inject::Bool, odds::Int = 10, n_inject = 1) 
+function set_inject_nan(should_inject::Bool, odds::Int = 10, n_inject = 1, functions = []) 
   injector.active = should_inject
   injector.odds = odds
   injector.ninject = n_inject
+  injector.functions = functions
 end
 
 @inline function check_error(fn, args, result, injected::Bool = false) 
@@ -69,7 +51,7 @@ end
 
 for O in (:(+), :(-), :(*), :(/), :(^), :min, :max, :rem)
     @eval function Base.$O(x::$TrackedFloatN,y::$TrackedFloatN)
-      (r, injected) = if should_inject(injector)        
+      (r, injected) = if should_inject(injector, stacktrace())        
         decrment_injections(injector)
         (NaN, true)
       else
