@@ -11,7 +11,7 @@ mutable struct Injector
   functions::Array{FunctionRef}
 end
 
-function should_inject(i::Injector, stacktrace::Array{Base.StackFrame})
+function should_inject(i::Injector, st::Array{Base.StackFrame})
   if i.active && i.ninject > 0
     in_right_fn = if isempty(i.functions)
       true
@@ -21,7 +21,7 @@ function should_inject(i::Injector, stacktrace::Array{Base.StackFrame})
         fr = FunctionRef(st.func, file, st.line) 
         fr in i.functions
       end
-      any(in_functions, stacktrace)
+      any(in_functions, st)
     end
     roll = rand(1:i.odds)
     return roll == 1 && in_right_fn

@@ -16,6 +16,15 @@ end
   end
 end
 
+@inline function run_or_inject(fn, args, st)
+  if should_inject(injector, st) 
+    decrment_injections(injector)
+    (NaN, true)
+  else
+    (fn(args...), false)
+  end
+end
+
 for TrackedFloatN in (:TrackedFloat16, :TrackedFloat32, :TrackedFloat64)
 
 # FloatN is the base float type derived from TrackedFloatN 
@@ -51,12 +60,7 @@ end
 
 for O in (:(+), :(-), :(*), :(/), :(^), :min, :max, :rem)
     @eval function Base.$O(x::$TrackedFloatN,y::$TrackedFloatN)
-      (r, injected) = if should_inject(injector, stacktrace())        
-        decrment_injections(injector)
-        (NaN, true)
-      else
-        ($O(x.val, y.val), false)
-      end
+      (r, injected) = run_or_inject($O, [x.val, y.val], stacktrace())
       check_error($O, [x.val, y.val], r, injected)
       $TrackedFloatN(r)
     end
@@ -79,8 +83,8 @@ for O in (:(-), :(+),
           :asind, :acosd, :atand, :acscd, :asecd, :acotd
          )
     @eval function Base.$O(x::$TrackedFloatN)
-      r = $O(x.val)
-      check_error($O, [x.val], r)
+      (r, injected) = run_or_inject($O, [x.val], stacktrace())
+      check_error($O, [x.val], r, injected)
       $TrackedFloatN(r)
     end
 end
