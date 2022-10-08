@@ -166,7 +166,7 @@ logylp = TF([0.0 v]')
 # Construct `sim`ilar and `dis`imilar versions of the dataset so we can test effect of smoothing
 # smoothing should decrease loss on disimilar and increase the loss on similar, compared to
 # the loss without smoothing
-ya = onehotbatch([1, 1, 1, 0, 0], 0:1) # TODO add TF
+ya = TF(onehotbatch([1, 1, 1, 0, 0], 0:1))
 ya_smoothed = label_smoothing(ya, 2sf)
 y_same = Float32.(ya)
 y_sim = y_same .* (1-2*sf) .+ sf
