@@ -1,6 +1,6 @@
 
 @inline function isfloaterror(x)
-  x isa AbstractFloat && (isnan(x) || isinf(x) || issubnormal(x))
+  x isa AbstractFloat && isnan(x)
 end
 
 struct Event

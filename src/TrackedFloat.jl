@@ -16,8 +16,8 @@ end
   end
 end
 
-@inline function run_or_inject(fn, args, st)
-  if should_inject(injector, st) 
+@inline function run_or_inject(fn, args)
+  if should_inject(injector) 
     decrment_injections(injector)
     (NaN, true)
   else
@@ -60,7 +60,7 @@ end
 
 for O in (:(+), :(-), :(*), :(/), :(^), :min, :max, :rem)
     @eval function Base.$O(x::$TrackedFloatN,y::$TrackedFloatN)
-      (r, injected) = run_or_inject($O, [x.val, y.val], stacktrace())
+      (r, injected) = run_or_inject($O, [x.val, y.val])
       check_error($O, [x.val, y.val], r, injected)
       $TrackedFloatN(r)
     end
@@ -83,7 +83,7 @@ for O in (:(-), :(+),
           :asind, :acosd, :atand, :acscd, :asecd, :acotd
          )
     @eval function Base.$O(x::$TrackedFloatN)
-      (r, injected) = run_or_inject($O, [x.val], stacktrace())
+      (r, injected) = run_or_inject($O, [x.val])
       check_error($O, [x.val], r, injected)
       $TrackedFloatN(r)
     end
