@@ -4,7 +4,7 @@ using LinearAlgebra
 using SparseArrays
 using IterativeSolvers
 
-fns = [FunctionRef(:norm2, Symbol("generic.jl"), 524)]
+fns = [FunctionRef(:norm2, Symbol("generic.jl"))]
 set_inject_nan(true, 1, 1, fns)
 
 A = sparse([TrackedFloat64(1), TrackedFloat64(1), TrackedFloat64(2), TrackedFloat64(3)], 

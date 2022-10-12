@@ -1,7 +1,6 @@
 struct FunctionRef
   name::Symbol
   file::Symbol
-  line::Int64
 end
 
 mutable struct Injector
@@ -18,7 +17,7 @@ function should_inject(i::Injector)
     else
       in_functions = function (st)
         file = Symbol(split(String(st.file), ['/', '\\'])[end])
-        fr = FunctionRef(st.func, file, st.line) 
+        fr = FunctionRef(st.func, file) 
         fr in i.functions
       end
       any(in_functions, stacktrace())
