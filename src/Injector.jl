@@ -12,6 +12,10 @@ end
 
 function should_inject(i::Injector)
   if i.active && i.ninject > 0
+    roll = rand(1:i.odds)
+    if roll != 1 
+      return false
+    end
     in_right_fn = if isempty(i.functions)
       true
     else
@@ -22,7 +26,6 @@ function should_inject(i::Injector)
       end
       any(in_functions, stacktrace())
     end
-    roll = rand(1:i.odds)
     return roll == 1 && in_right_fn
   end
   return false
