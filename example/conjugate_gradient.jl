@@ -7,8 +7,8 @@ using IterativeSolvers
 fns = [FunctionRef(:norm2, Symbol("generic.jl"))]
 set_inject_nan(true, 1, 1, fns)
 
-A = sparse([TrackedFloat64(1), TrackedFloat64(1), TrackedFloat64(2), TrackedFloat64(3)], 
-           [TrackedFloat64(1), TrackedFloat64(3), TrackedFloat64(2), TrackedFloat64(3)], 
+A = sparse([Float64(1), Float64(1), Float64(2), Float64(3)],
+           [Float64(1), Float64(3), Float64(2), Float64(3)],
            [TrackedFloat64(0), TrackedFloat64(1), TrackedFloat64(2), TrackedFloat64(0)]
         )
 
