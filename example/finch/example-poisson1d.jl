@@ -36,9 +36,8 @@ testSymbol("v")                # sets the symbol for a test function
 boundary(u, 1, DIRICHLET, 0)  # boundary condition for BID 1 is Dirichlet with value 0
 
 # Write the weak form 
-coefficient("f", "TrackedFloat64(TrackedFloat64(-100)*pi*pi*sin(TrackedFloat64(10)*pi*x)*sin(pi*x) - pi*pi*sin(TrackedFloat64(10)*pi*x)*sin(pi*x) + TrackedFloat64(20)*pi*pi*cos(TrackedFloat64(10)*pi*x)*cos(pi*x))")
+coefficient("f", "TrackedFloat64(-100*pi*pi*sin(10*pi*x)*sin(pi*x) - pi*pi*sin(TrackedFloat64(10)*pi*x)*sin(pi*x) + 20*pi*pi*cos(TrackedFloat64(10)*pi*x)*cos(pi*x))")
 weakForm(u, "(-grad(u)*grad(v)) - f*v")
-## TODO bg try chinging the librar, nothing on surface seems to work!
 
 solve(u);
 
@@ -65,4 +64,4 @@ println("max error = "*string(maxerr));
 # log_dump_prob();
 
 finalize_finch() # Finish writing and close any files
-write_log_to_file(file_name="poisson")
+write_log_to_file(file_name="tf-poisson")
