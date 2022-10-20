@@ -7,7 +7,9 @@
 ### If the Finch package has already been added, use this line #########
 using Finch # Note: to add the package, first do: ]add "https://github.com/paralab/Finch.git"
 
-using FloatTracker: write_log_to_file
+using FloatTracker: write_log_to_file, set_inject_nan
+fns = []
+set_inject_nan(true, 1, 1, fns)
 
 ### If not, use these four lines (working from the examples directory) ###
 # if !@isdefined(Finch)
