@@ -11,6 +11,12 @@ struct Event
   trace::StackTraces.StackTrace
 end
 
+exclude_stacktrace = [] 
+
+function set_exlude_stacktrace(exclusions = []) 
+  global exclude_stacktrace = exclusions
+end
+
 function event(op, args, result, is_injected = false) :: Event
   evt_type = 
     if is_injected 
@@ -23,7 +29,13 @@ function event(op, args, result, is_injected = false) :: Event
       :kill
     end
 
-  Event(evt_type, op, args, result, stacktrace()[2:end])
+  st = if evt_type in exclude_stacktrace 
+    Base.StackFrame[]
+  else
+    stacktrace()[2:end] 
+  end
+
+  Event(evt_type, op, args, result, st)
 end
 
 function to_string(evt::Event) 
