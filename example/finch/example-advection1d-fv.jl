@@ -5,6 +5,10 @@
 ### If the Finch package has already been added, use this line #########
 using Finch # Note: to add the package, first do: ]add "https://github.com/paralab/Finch.git"
 
+using FloatTracker: write_log_to_file, set_inject_nan
+fns = []
+set_inject_nan(true, 1, 1, fns)
+
 ### If not, use these four lines (working from the examples directory) ###
 # if !@isdefined(Finch)
 #     include("../Finch.jl");
@@ -49,14 +53,14 @@ boundary(w, 2, DIRICHLET, 0)
 # Time interval and initial condition
 T = 0.5;
 timeInterval(T)
-initial(u, "0")
-initial(v, "0")
-initial(w, "0")
+initial(u, "TrackedFloat64(0)")
+initial(v, "TrackedFloat64(0)")
+initial(w, "TrackedFloat64(0)")
 
 # The flux and source terms of the conservation equation
 # F and S in the following equation:
 # Dt(int(u dx)/V) = int(S dx) - int(F ds)
-coefficient("a", 1) # advection velocity
+coefficient("a", "TrackedFloat64(1)") # advection velocity
 # The "upwind" function applies upwinding to the term (a.n)*f with flow velocity a.
 # The optional third parameter is for tuning. Default upwind = 0, central = 1. Choose something between these.
 flux([u, v, w], ["upwind(a,u)", "upwind(a,v)", "upwind(a,w)"]) 
@@ -68,6 +72,7 @@ flux([u, v, w], ["upwind(a,u)", "upwind(a,v)", "upwind(a,w)"])
 solve([u,v,w])
 
 finalize_finch()
+write_log_to_file(file_name="tf-advection1d-fv")
 
 ##### Uncomment below to compare to exact solution
 

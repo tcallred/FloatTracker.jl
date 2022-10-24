@@ -5,6 +5,10 @@
 ### If the Finch package has already been added, use this line #########
 using Finch # Note: to add the package, first do: ]add "https://github.com/paralab/Finch.git"
 
+using FloatTracker: write_log_to_file, set_inject_nan
+fns = []
+set_inject_nan(true, 1, 1, fns)
+
 ### If not, use these four lines (working from the examples directory) ###
 # if !@isdefined(Finch)
 #     include("../Finch.jl");
@@ -26,7 +30,7 @@ if use_tri
     # n = 30
     # mesh(QUADMESH, elsperdim=n, bids=4)
     
-    mesh("src/examples/utriangle.msh")  # Using triangles
+    mesh("utriangle.msh")  # Using triangles
     
     add_boundary_ID(2, (x,y) -> (x >= 0.1));
     add_boundary_ID(3, (x,y) -> (y <= 0));
@@ -34,7 +38,7 @@ if use_tri
     finiteVolumeOrder(2);
 else
     timeStepper(RK4)
-    n = 10
+    n = 1
     mesh(QUADMESH, elsperdim=n, bids=4)
     finiteVolumeOrder(2);
 end
@@ -62,7 +66,7 @@ initial(u, "0")
 if use_tri
     coefficient("a", ["0.1*cos(pi*x/2/0.1)","0.3*sin(pi*x/2/0.1)"], type=VECTOR) # advection velocity
 else
-    coefficient("a", ["cos(pi*x/2)","sin(pi*x/2)"], type=VECTOR) # advection velocity
+    coefficient("a", ["cos(pi*x/TrackedFloat64(2))","sin(pi*x/2)"], type=VECTOR) # advection velocity
 end
 coefficient("s", ["sin(pi*x)^4 * sin(pi*y)^4"]) # source
 # The "upwind" function applies upwinding to the term (a.n)*u with flow velocity a.
@@ -76,6 +80,7 @@ flux(u, "upwind(a,u)")
 solve(u)
 
 finalize_finch()
+write_log_to_file(file_name="tf-advection2d-fv")
 
 # output to file
 # output_values(u, "fvad2d", format="csv");

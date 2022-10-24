@@ -9,8 +9,8 @@ set_inject_nan(true, 10, 1, fns)
 set_logger("cg", 5)
 set_exlude_stacktrace([:prop])
 
-A = sparse([TrackedFloat64(1), TrackedFloat64(1), TrackedFloat64(2), TrackedFloat64(3)], 
-           [TrackedFloat64(1), TrackedFloat64(3), TrackedFloat64(2), TrackedFloat64(3)], 
+A = sparse([Float64(1), Float64(1), Float64(2), Float64(3)],
+           [Float64(1), Float64(3), Float64(2), Float64(3)],
            [TrackedFloat64(0), TrackedFloat64(1), TrackedFloat64(2), TrackedFloat64(0)]
         )
 

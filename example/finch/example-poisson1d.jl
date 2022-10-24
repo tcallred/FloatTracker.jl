@@ -7,6 +7,10 @@
 ### If the Finch package has already been added, use this line #########
 using Finch # Note: to add the package, first do: ]add "https://github.com/paralab/Finch.git"
 
+using FloatTracker: write_log_to_file, set_inject_nan
+fns = []
+set_inject_nan(true, 1, 1, fns)
+
 ### If not, use these four lines (working from the examples directory) ###
 # if !@isdefined(Finch)
 #     include("../Finch.jl");
@@ -32,8 +36,8 @@ testSymbol("v")                # sets the symbol for a test function
 boundary(u, 1, DIRICHLET, 0)  # boundary condition for BID 1 is Dirichlet with value 0
 
 # Write the weak form 
-coefficient("f", "-100*pi*pi*sin(10*pi*x)*sin(pi*x) - pi*pi*sin(10*pi*x)*sin(pi*x) + 20*pi*pi*cos(10*pi*x)*cos(pi*x)")
-weakForm(u, "-grad(u)*grad(v) - f*v")
+coefficient("f", "TrackedFloat64(-100*pi*pi*sin(10*pi*x)*sin(pi*x) - pi*pi*sin(TrackedFloat64(10)*pi*x)*sin(pi*x) + 20*pi*pi*cos(TrackedFloat64(10)*pi*x)*cos(pi*x))")
+weakForm(u, "(-grad(u)*grad(v)) - f*v")
 
 solve(u);
 
@@ -60,3 +64,4 @@ println("max error = "*string(maxerr));
 # log_dump_prob();
 
 finalize_finch() # Finish writing and close any files
+write_log_to_file(file_name="tf-poisson")
