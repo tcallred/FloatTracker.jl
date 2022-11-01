@@ -90,6 +90,8 @@ import FloatTracker
 import Flux
 using Flux.Losses: mse, label_smoothing, crossentropy, logitcrossentropy, binarycrossentropy, logitbinarycrossentropy
 using Flux.Losses: xlogx, xlogy
+FloatTracker.set_logger("losses", 5)
+FloatTracker.set_exclude_stacktrace([:prop])
 
 function TF(arr)
   return map(elem -> FloatTracker.TrackedFloat64(elem), arr)
@@ -342,4 +344,4 @@ end
   @test_throws DomainError(-1, "Margin must be non-negative") Flux.siamese_contrastive_loss(ŷ, y, margin = -1)
 end
 
-FloatTracker.write_log_to_file(file_name="losses")
+FloatTracker.write_log_to_file()

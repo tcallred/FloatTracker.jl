@@ -1,9 +1,17 @@
+# BG error, .-
+
 #=
 # 1D advection matching the example in the book: Nodal Discontinuous Galerkin Method.
 =#
 
 ### If the Finch package has already been added, use this line #########
 using Finch # Note: to add the package, first do: ]add "https://github.com/paralab/Finch.git"
+
+using FloatTracker: write_log_to_file, set_inject_nan, set_logger, set_exclude_stacktrace
+fns = []
+set_inject_nan(true, 1, 1, fns)
+set_logger("tf-advection1d", 5)
+set_exclude_stacktrace([:prop])
 
 ### If not, use these four lines (working from the examples directory) ###
 # if !@isdefined(Finch)
@@ -51,6 +59,7 @@ exportCode("advec1d")
 ###################################################
 
 solve(u);
+write_log_to_file()
 
 # Uncomment to plot
 # using Plots

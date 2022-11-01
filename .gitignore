@@ -1,3 +1,6 @@
 *.txt
 .*/
 run*/
+
+example/finch/LD_*
+example/finch/elasticitycode*

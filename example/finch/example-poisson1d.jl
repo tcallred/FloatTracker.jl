@@ -7,9 +7,11 @@
 ### If the Finch package has already been added, use this line #########
 using Finch # Note: to add the package, first do: ]add "https://github.com/paralab/Finch.git"
 
-using FloatTracker: write_log_to_file, set_inject_nan
+using FloatTracker: write_log_to_file, set_inject_nan, set_logger, set_exclude_stacktrace
 fns = []
 set_inject_nan(true, 1, 1, fns)
+set_logger("tf-poisson", 5)
+set_exclude_stacktrace([:prop])
 
 ### If not, use these four lines (working from the examples directory) ###
 # if !@isdefined(Finch)
@@ -64,4 +66,4 @@ println("max error = "*string(maxerr));
 # log_dump_prob();
 
 finalize_finch() # Finish writing and close any files
-write_log_to_file(file_name="tf-poisson")
+write_log_to_file()

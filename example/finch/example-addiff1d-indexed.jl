@@ -1,3 +1,5 @@
+# BG NO
+
 #=
 # 1D advection-diffusion using FV with indexed equations:
 #   flux_ij = a_i.n * u_ij + D_j * grad(u_ij).n
@@ -6,6 +8,10 @@
 
 ### If the Finch package has already been added, use this line #########
 using Finch # Note: to add the package, first do: ]add "https://github.com/paralab/Finch.git"
+
+# using FloatTracker: write_log_to_file, set_inject_nan
+# fns = []
+# set_inject_nan(true, 1, 1, fns)
 
 ### If not, use these four lines (working from the examples directory) ###
 # if !@isdefined(Finch)
@@ -76,6 +82,7 @@ assemblyLoops(u, ["elements", speed, diff])
 solve(u)
 
 finalize_finch()
+# write_log_to_file(file_name="tf-addiff1d")
 
 ##### Uncomment below to compare to plot solution
 

@@ -1,8 +1,10 @@
 include("../src/FloatTracker.jl")
 using LinearAlgebra
-using .FloatTracker: TrackedFloat16, write_log_to_file, set_inject_nan
+using .FloatTracker: TrackedFloat16, write_log_to_file, set_inject_nan, set_logger, set_exclude_stacktrace
 
 set_inject_nan(true)
+set_logger("gram_schmidt", 5)
+set_exclude_stacktrace([:prop])
 
 gs_cofficient(v1, v2) = dot(v2, v1) / dot(v1, v1)
 
@@ -47,4 +49,4 @@ println(gs(tr_test))
 #   end
 # end
 
-write_log_to_file(file_name="gram_schmidt")
+write_log_to_file()

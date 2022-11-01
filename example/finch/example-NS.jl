@@ -1,9 +1,17 @@
+# bg TODO runs but no events
+
 #=
 # 2D NS eq. Dirichlet bc, CG
 =#
 
 ### If the Finch package has already been added, use this line #########
 using Finch # Note: to add the package, first do: ]add "https://github.com/paralab/Finch.git"
+
+using FloatTracker: write_log_to_file, set_inject_nan, set_logger, set_exclude_stacktrace
+fns = []
+set_inject_nan(true, 1, 1, fns)
+set_logger("tf-NS", 5)
+set_exclude_stacktrace([:prop])
 
 ### If not, use these four lines (working from the examples directory) ###
 # if !@isdefined(Finch)
@@ -24,7 +32,7 @@ functionSpace(order=1)      # basis polynomial order
 nodeType(LOBATTO)           # GLL elemental node arrangement (default)
 timeStepper(EULER_IMPLICIT) # time stepper
 dt = 0.05;
-nsteps = 50;
+nsteps = 2; # 50;
 setSteps(dt, nsteps)        # manually set stepper dt and Nsteps, overriding defaults and interval
 
 # Specify the problem
@@ -70,11 +78,11 @@ boundary(dp, 4, NO_BC)
 referencePoint(dp, [0,0], 0) 
 
 # Write the weak form
-coefficient("mu", 0.01)
+coefficient("mu", "TrackedFloat64(0.01)")
 coefficient("dtc", dt)
-coefficient("h", 1.0 / 32)
-coefficient("coe1", 4.0)
-coefficient("coe2", 6.0)
+coefficient("h", "TrackedFloat64(1.0 / 32)")
+coefficient("coe1", "TrackedFloat64(4.0)")
+coefficient("coe2", "TrackedFloat64(6.0)")
 
 parameter("tauM", "1.0 ./ (coe1 ./ dtc ./ dtc+ (u*u+v*v) ./ h ./ h+coe2*mu*mu ./ h ./ h ./ h ./ h) .^ 0.5")
 parameter("tauC", "0.1*h*h* ((u*u+v*v) ./ h ./ h+coe2*mu*mu ./ h ./ h ./ h ./ h) .^ 0.5")
@@ -99,3 +107,4 @@ log_dump_config();
 log_dump_prob();
 
 finalize_finch() # Finish writing and close any files
+write_log_to_file()

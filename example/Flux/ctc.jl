@@ -7,6 +7,8 @@ using Flux.Losses: ctc_loss
 using Zygote: gradient
 using LinearAlgebra
 using FloatTracker
+set_logger("ctc", 5)
+set_exclude_stacktrace([:prop])
 
 # Custom function to check numerical gradient of ctc loss,
 # based on `ngradient` in `Tracker.jl`
@@ -56,4 +58,4 @@ end
   @test g ≈ ghat rtol=1e-5 atol=1e-5
 end
 
-write_log_to_file(file_name="ctc")
+write_log_to_file()

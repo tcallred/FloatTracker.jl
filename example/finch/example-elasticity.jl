@@ -1,9 +1,18 @@
+# BG TODO runs, but no events
+# 2022-10-25 stackoverflow
+
 #=
 # Linear elasticity
 =#
 
 ### If the Finch package has already been added, use this line #########
 using Finch # Note: to add the package, first do: ]add "https://github.com/paralab/Finch.git"
+
+using FloatTracker: write_log_to_file, set_inject_nan, set_logger, set_exclude_stacktrace
+fns = []
+set_inject_nan(true, 1, 1, fns)
+set_logger("tf-elasticity", 5)
+set_exclude_stacktrace([:prop])
 
 ### If not, use these four lines (working from the examples directory) ###
 # if !@isdefined(Finch)
@@ -37,10 +46,12 @@ boundary(u, 4, NEUMANN, [0,0,0])
 
 # Write the weak form
 # coefficient("mu", "x>0.5 ? 0.2 : 10") # discontinuous mu
-coefficient("mu", 1) # constant mu
-coefficient("lambda", 1.25)
+coefficient("mu", "TrackedFloat64(1)") # constant mu
+coefficient("lambda", "TrackedFloat64(1.25)")
 coefficient("f", [0,0,-10], type=VECTOR)
 weakForm(u, "inner( (lambda * div(u) .* [1 0 0; 0 1 0; 0 0 1] + mu .* (grad(u) + transpose(grad(u)))), grad(v)) - dot(f,v)")
+# [TrackedFloat64(1) TrackedFloat64(0) TrackedFloat64(0); TrackedFloat64(0) TrackedFloat64(1) TrackedFloat64(0); TrackedFloat64(0) TrackedFloat64(0) TrackedFloat64(1)]
+# [1 0 0; 0 1 0; 0 0 1]
 
 exportCode("elasticitycode")
 
@@ -59,3 +70,5 @@ println("time: "*string(t))
 finalize_finch() # Finish writing and close any files
 
 println("u_z at end "*string(maximum(u.values[3,Finch.grid_data.bdry[2][3]])));
+
+write_log_to_file()
