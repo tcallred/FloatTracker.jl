@@ -26,7 +26,11 @@ useLog("FVadvection2dlog", level=3)
 domain(2)
 solverType(FV)
 
-timeStepper(EULER_IMPLICIT)
+#timeStepper(EULER_IMPLICIT)
+# original timestepper
+
+timeStepper(EULER_EXPLICIT,cfl=20000)
+# NaN-making timestepper
 
 use_unstructured=false;
 if use_unstructured
@@ -52,8 +56,9 @@ boundary(u, 3, NO_BC) # y=0
 boundary(u, 4, NO_BC) # y=0.3
 
 # Time interval and initial condition
-T = 1.3;
-timeInterval(T)
+#T = 1.3;
+T=200
+timeInterva(T)
 initial(u, "0")
 
 # Coefficients
