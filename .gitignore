@@ -4,3 +4,6 @@ run*/
 *.dot
 *.gexf
 *.ps
+
+example/finch/LD_*
+example/finch/elasticitycode*

@@ -5,9 +5,11 @@
 ### If the Finch package has already been added, use this line #########
 using Finch # Note: to add the package, first do: ]add "https://github.com/paralab/Finch.git"
 
-using FloatTracker: write_log_to_file, set_inject_nan
+using FloatTracker: write_log_to_file, set_inject_nan, set_logger, set_exclude_stacktrace
 fns = []
 set_inject_nan(true, 1, 1, fns)
+set_logger("tf-advection1d-fv", 5)
+set_exclude_stacktrace([:prop])
 
 ### If not, use these four lines (working from the examples directory) ###
 # if !@isdefined(Finch)
@@ -72,7 +74,7 @@ flux([u, v, w], ["upwind(a,u)", "upwind(a,v)", "upwind(a,w)"])
 solve([u,v,w])
 
 finalize_finch()
-write_log_to_file(file_name="tf-advection1d-fv")
+write_log_to_file()
 
 ##### Uncomment below to compare to exact solution
 

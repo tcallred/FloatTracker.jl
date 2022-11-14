@@ -3,6 +3,8 @@
 using Flux: Chain, Dense, params, logitcrossentropy, onehotbatch, ADAM, train!, softmax
 using Test
 import FloatTracker
+FloatTracker.set_logger("fizzbuzz", 5)
+FloatTracker.set_exclude_stacktrace([:prop])
 
 function TF(arr)
   return map(x -> FloatTracker.TrackedFloat64(x), arr)
@@ -71,5 +73,5 @@ end
 
 train()
 
-FloatTracker.write_log_to_file(file_name="fizzbuzz")
+FloatTracker.write_log_to_file()
 

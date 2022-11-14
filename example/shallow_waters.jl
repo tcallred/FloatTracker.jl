@@ -1,5 +1,5 @@
 include("../src/FloatTracker.jl")
-using .FloatTracker: TrackedFloat16, TrackedFloat32, write_log_to_file, set_inject_nan, set_exlude_stacktrace, set_logger
+using .FloatTracker: TrackedFloat16, TrackedFloat32, write_log_to_file, set_inject_nan, set_exclude_stacktrace, set_logger
 using ShallowWaters
 
 # run_model()
