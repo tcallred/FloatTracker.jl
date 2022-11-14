@@ -1,5 +1,7 @@
 include("../src/FloatTracker.jl")
-using .FloatTracker: TrackedFloat16, write_log_to_file
+using .FloatTracker: TrackedFloat16, write_out_logs, set_logger
+
+set_logger(filename="max", buffersize=1)
 
 function maximum(lst)
   curr_max = 0.0
@@ -26,4 +28,4 @@ println("--- With builtin max ---")
 res2 = maximum2([TrackedFloat16(x) for x in [1, NaN, 4]]).val
 println("Result: $(res2)")
 
-write_log_to_file(file_name="max")
+write_out_logs()
