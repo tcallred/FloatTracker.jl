@@ -58,7 +58,7 @@ boundary(u, 4, NO_BC) # y=0.3
 # Time interval and initial condition
 #T = 1.3;
 T=200
-timeInterva(T)
+timeInterval(T)
 initial(u, "0")
 
 # Coefficients
