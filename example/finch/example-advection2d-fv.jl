@@ -18,7 +18,7 @@ set_exclude_stacktrace([:prop])
 # end
 ##########################################################################
 
-init_finch("FVadvection2d");
+initFinch("FVadvection2d");
 floatDataType(TrackedFloat64)
 useLog("FVadvection2dlog", level=3)
 
