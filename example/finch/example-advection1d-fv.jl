@@ -7,8 +7,8 @@ using Finch # Note: to add the package, first do: ]add "https://github.com/paral
 
 using FloatTracker: TrackedFloat64, write_log_to_file, set_inject_nan, set_logger, set_exclude_stacktrace
 fns = []
-set_inject_nan(true, 1, 1, fns)
-set_logger("tf-advection1d-fv", 5)
+set_inject_nan(false, 1, 1, fns)
+set_logger(filename="tf-advection1d-fv")
 set_exclude_stacktrace([:prop])
 
 ### If not, use these four lines (working from the examples directory) ###
@@ -22,14 +22,13 @@ set_exclude_stacktrace([:prop])
 initFinch("advection1d");
 floatDataType(TrackedFloat64)
 useLog("advection1dlog", level=3)
-init_finch("FVadvection1d");
 
 # Configuration setup
 domain(1)
 solverType(FV)
-# timeStepper(EULER_EXPLICIT)
+timeStepper(EULER_EXPLICIT)
 # original timestepper
-timeStepper(EULER_EXPLICIT,cfl=20000)
+# timeStepper(EULER_EXPLICIT,cfl=20000)
 # NaN-making timestepper
 
 # Mesh
@@ -51,8 +50,8 @@ boundary(v, 2, NO_BC)
 boundary(w, 2, DIRICHLET, 0)
 
 # Time interval and initial condition
-#T = 0.5;
-T=200
+T = 0.5;
+#T=200
 timeInterval(T)
 initial(u, 0)
 initial(v, 0)
