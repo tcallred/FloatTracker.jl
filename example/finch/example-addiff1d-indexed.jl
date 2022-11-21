@@ -13,7 +13,7 @@ using FloatTracker: TrackedFloat64, FunctionRef, write_log_to_file, set_inject_n
 fns = []
 #fns = [FunctionRef(:mesh, Symbol("finch_interface.jl"))]
 set_inject_nan(false, 1, 1, fns)
-set_logger("tf-addiff1d-indexed", 5)
+set_logger(filename="tf-addiff1d-indexed")
 set_exclude_stacktrace([:prop])
 
 ### If not, use these four lines (working from the examples directory) ###
@@ -25,12 +25,13 @@ set_exclude_stacktrace([:prop])
 
 init_finch("addiff1dindexed");
 floatDataType(TrackedFloat64)
-useLog("addiff1dindexedlog", level=3)
+# useLog("addiff1dindexedlog", level=3)
 
 # Configuration setup
 domain(1)
 solverType(FV)
 timeStepper(EULER_EXPLICIT)
+#timeStepper(EULER_EXPLICIT,cfl=2000)
 
 # Mesh
 n = 60 # number of elements
@@ -58,6 +59,7 @@ boundary(u, 2, NO_BC)
 
 # Time interval and initial condition
 T = 0.3;
+#T = 50;
 timeInterval(T)
 initial(u, "x<=0.3&&x>0.1 ? 1 : 0")
 
@@ -71,7 +73,7 @@ coefficient("d", diffs, type=VAR_ARRAY) # diffusion rate
 
 conservationForm(u, "surface(upwind(a[speed],u[speed, diff]) - d[diff] * dot(grad(u[speed, diff]),normal()))")
 
-exportCode("addiff1dindexedcode") # uncomment to export generated code to a file
+# exportCode("addiff1dindexedcode") # uncomment to export generated code to a file
 # importCode("addiff1dindexedcode") # uncomment to import code from a file
 
 solve(u)
