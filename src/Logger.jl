@@ -94,7 +94,7 @@ function write_events(file, events)
 end
 
 function write_logs_for_cstg()
-  injects = filter(e -> e.evt_type == :inject, logger.events)
+  injects = filter(e -> e.evt_type == :injected, logger.events)
   gens = filter(e -> e.evt_type == :gen, logger.events)
   props = filter(e -> e.evt_type == :prop, logger.events)
   kills = filter(e -> e.evt_type == :kill, logger.events)
