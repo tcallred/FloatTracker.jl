@@ -23,8 +23,7 @@ set_exclude_stacktrace([:prop])
 # end
 ##########################################################################
 
-init_finch("addiff1dindexed");
-floatDataType(TrackedFloat64)
+initFinch("addiff1dindexed", TrackedFloat64);
 # useLog("addiff1dindexedlog", level=3)
 
 # Configuration setup

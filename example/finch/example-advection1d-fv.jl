@@ -19,8 +19,7 @@ set_exclude_stacktrace([:prop])
 ##########################################################################
 
 
-initFinch("advection1d");
-floatDataType(TrackedFloat64)
+initFinch("advection1d", TrackedFloat64);
 useLog("advection1dlog", level=3)
 
 # Configuration setup

@@ -22,8 +22,7 @@ set_exclude_stacktrace([:prop])
 # end
 ##########################################################################
 
-init_finch("poisson1d");
-floatDataType(TrackedFloat64)
+initFinch("poisson1d", TrackedFloat64);
 useLog("poisson1dlog", level=3)
 
 # Set up the configuration
