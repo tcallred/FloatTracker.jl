@@ -8,7 +8,7 @@ using Finch # Note: to add the package, first do: ]add "https://github.com/paral
 using FloatTracker: TrackedFloat64, write_log_to_file, set_inject_nan, set_logger, set_exclude_stacktrace
 fns = []
 set_inject_nan(false, 1, 1, fns)
-set_logger("tf-advection2d-fv", 5)
+set_logger(filename="tf-advection2d-fv")
 set_exclude_stacktrace([:prop])
 
 ### If not, use these four lines (working from the examples directory) ###
@@ -18,8 +18,7 @@ set_exclude_stacktrace([:prop])
 # end
 ##########################################################################
 
-init_finch("FVadvection2d");
-floatDataType(TrackedFloat64)
+initFinch("FVadvection2d", TrackedFloat64);
 useLog("FVadvection2dlog", level=3)
 
 # Configuration setup
