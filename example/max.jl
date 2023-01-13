@@ -16,7 +16,7 @@ end
 function maximum2(lst)
   foldl(max, lst)
 end
-  
+
 println("--- With less than ---")
 # res = maximum([1, NaN, 4])
 res = maximum([TrackedFloat16(x) for x in [1, NaN, 4]]).val
