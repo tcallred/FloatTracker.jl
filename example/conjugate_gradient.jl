@@ -1,5 +1,5 @@
 include("../src/FloatTracker.jl")
-using .FloatTracker: TrackedFloat64, FunctionRef, write_out_logs, set_inject_nan, set_logger, set_exlude_stacktrace
+using .FloatTracker: TrackedFloat64, FunctionRef, write_out_logs, set_inject_nan, set_logger, set_exclude_stacktrace
 using LinearAlgebra
 using SparseArrays
 using IterativeSolvers
