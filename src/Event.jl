@@ -13,7 +13,7 @@ end
 
 exclude_stacktrace = [] 
 
-function set_exclude_stacktrace(exclusions = []) 
+function set_exclude_stacktrace(exclusions = [])
   global exclude_stacktrace = exclusions
 end
 
