@@ -2,22 +2,22 @@ abstract type AbstractTrackedFloat <: AbstractFloat end
 
 injector = Injector(false, 0, 0, [])
 
-function set_inject_nan(should_inject::Bool, odds::Int = 10, n_inject = 1, functions = []) 
+function set_inject_nan(should_inject::Bool, odds::Int = 10, n_inject = 1, functions = [])
   injector.active = should_inject
   injector.odds = odds
   injector.ninject = n_inject
   injector.functions = functions
 end
 
-@inline function check_error(fn, args, result, injected::Bool = false) 
-  if any(v -> isfloaterror(v), [args..., result]) 
+@inline function check_error(fn, args, result, injected::Bool = false)
+  if any(v -> isfloaterror(v), [args..., result])
     e = event(string(fn), args, result, injected)
     log_event(e)
   end
 end
 
 @inline function run_or_inject(fn, args)
-  if should_inject(injector) 
+  if should_inject(injector)
     decrment_injections(injector)
     (NaN, true)
   else
@@ -27,10 +27,10 @@ end
 
 for TrackedFloatN in (:TrackedFloat16, :TrackedFloat32, :TrackedFloat64)
 
-# FloatN is the base float type derived from TrackedFloatN 
+# FloatN is the base float type derived from TrackedFloatN
 @eval FloatN = $(Symbol("Float", string(TrackedFloatN)[end-1:end]))
 
-@eval begin 
+@eval begin
   struct $TrackedFloatN <: AbstractTrackedFloat
     val::$FloatN
   end
@@ -54,8 +54,8 @@ for TrackedFloatN in (:TrackedFloat16, :TrackedFloat32, :TrackedFloat64)
   Base.promote_rule(::Type{<:Integer},::Type{$TrackedFloatN}) = $TrackedFloatN
   Base.promote_rule(::Type{Float64},::Type{$TrackedFloatN}) = $TrackedFloatN
   Base.promote_rule(::Type{Float32},::Type{$TrackedFloatN}) = $TrackedFloatN
-  Base.promote_rule(::Type{Float16},::Type{$TrackedFloatN}) = $TrackedFloatN 
-  Base.promote_rule(::Type{Bool},::Type{$TrackedFloatN}) = $TrackedFloatN 
+  Base.promote_rule(::Type{Float16},::Type{$TrackedFloatN}) = $TrackedFloatN
+  Base.promote_rule(::Type{Bool},::Type{$TrackedFloatN}) = $TrackedFloatN
 end
 
 for O in (:(+), :(-), :(*), :(/), :(^), :min, :max, :rem)

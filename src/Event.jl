@@ -11,15 +11,15 @@ struct Event
   trace::StackTraces.StackTrace
 end
 
-exclude_stacktrace = [] 
+exclude_stacktrace = []
 
 function set_exclude_stacktrace(exclusions = [])
   global exclude_stacktrace = exclusions
 end
 
 function event(op, args, result, is_injected = false) :: Event
-  evt_type = 
-    if is_injected 
+  evt_type =
+    if is_injected
       :injected
     elseif all(arg -> !isfloaterror(arg), args) && isfloaterror(result)
       :gen
@@ -29,16 +29,16 @@ function event(op, args, result, is_injected = false) :: Event
       :kill
     end
 
-  st = if evt_type in exclude_stacktrace 
+  st = if evt_type in exclude_stacktrace
     Base.StackFrame[]
   else
-    stacktrace()[2:end] 
+    stacktrace()[2:end]
   end
 
   Event(evt_type, op, args, result, st)
 end
 
-function to_string(evt::Event) 
+function to_string(evt::Event)
   sts = join(["\t$st" for st in evt.trace], "\n")
   return "$(uppercase(string(evt.evt_type))) $(join(evt.args, ",")) -> $(evt.op) -> $(evt.result)\n $sts"
 end

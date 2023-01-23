@@ -13,7 +13,7 @@ end
 function should_inject(i::Injector)
   if i.active && i.ninject > 0
     roll = rand(1:i.odds)
-    if roll != 1 
+    if roll != 1
       return false
     end
     in_right_fn = if isempty(i.functions)
@@ -21,7 +21,7 @@ function should_inject(i::Injector)
     else
       in_functions = function (st)
         file = Symbol(split(String(st.file), ['/', '\\'])[end])
-        fr = FunctionRef(st.func, file) 
+        fr = FunctionRef(st.func, file)
         fr in i.functions
       end
       any(in_functions, stacktrace())
