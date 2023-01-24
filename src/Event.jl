@@ -3,6 +3,18 @@
   x isa AbstractFloat && isnan(x)
 end
 
+"""
+    Event
+
+Struct representing some event in the life of a NaN.
+
+`evt_type` options:
+
+ - `:injected`
+ - `:gen`
+ - `:prop`
+ - `:kill`
+"""
 struct Event
   evt_type::Symbol
   op::String
@@ -17,6 +29,11 @@ function set_exclude_stacktrace(exclusions = [])
   global exclude_stacktrace = exclusions
 end
 
+"""
+    event(op, args, result, is_injected = false)
+
+Construct an `Event` struct
+"""
 function event(op, args, result, is_injected = false) :: Event
   evt_type =
     if is_injected
