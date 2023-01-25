@@ -25,6 +25,7 @@ function set_logger(; filename="default", buffersize=5, print=false, cstg=false,
   log_config.outputCSTG = cstg
   log_config.cstgLineNum = cstgLineNum
   log_config.cstgArgs = cstgArgs
+  return log_config.filename
 end
 
 function log_event(evt::Event)
