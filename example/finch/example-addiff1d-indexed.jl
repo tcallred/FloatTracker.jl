@@ -9,7 +9,8 @@
 ### If the Finch package has already been added, use this line #########
 using Finch # Note: to add the package, first do: ]add "https://github.com/paralab/Finch.git"
 
-using FloatTracker: TrackedFloat64, FunctionRef, write_log_to_file, set_inject_nan, set_logger, set_exclude_stacktrace
+include("../../src/FloatTracker.jl")
+using .FloatTracker: TrackedFloat64, FunctionRef, write_log_to_file, set_inject_nan, set_logger, set_exclude_stacktrace
 fns = []
 #fns = [FunctionRef(:mesh, Symbol("finch_interface.jl"))]
 set_inject_nan(false, 1, 1, fns)
