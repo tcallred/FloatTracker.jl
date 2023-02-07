@@ -1,5 +1,4 @@
-# BG TODO runs, but no events
-# 2022-10-25 stackoverflow
+# 2023-02-07 runs without TF, too slow with TF
 
 #=
 # Linear elasticity
@@ -9,10 +8,10 @@
 using Finch # Note: to add the package, first do: ]add "https://github.com/paralab/Finch.git"
 
 include("../../src/FloatTracker.jl")
-using .FloatTracker: write_log_to_file, set_inject_nan, set_logger, set_exclude_stacktrace
+using .FloatTracker: TrackedFloat64, write_log_to_file, set_inject_nan, set_logger, set_exclude_stacktrace
 fns = []
-set_inject_nan(true, 1, 1, fns)
-set_logger("tf-elasticity", 5)
+set_inject_nan(false, 1, 1, fns)
+set_logger(filename="tf-elasticity")
 set_exclude_stacktrace([:prop])
 
 ### If not, use these four lines (working from the examples directory) ###
@@ -22,7 +21,7 @@ set_exclude_stacktrace([:prop])
 # end
 ##########################################################################
 
-init_finch("elasticity");
+initFinch("elasticity", TrackedFloat64);
 
 # Optionally generate a log
 useLog("elasticitylog", level=3)
@@ -47,12 +46,10 @@ boundary(u, 4, NEUMANN, [0,0,0])
 
 # Write the weak form
 # coefficient("mu", "x>0.5 ? 0.2 : 10") # discontinuous mu
-coefficient("mu", "TrackedFloat64(1)") # constant mu
-coefficient("lambda", "TrackedFloat64(1.25)")
+coefficient("mu", "1") # constant mu
+coefficient("lambda", "1.25")
 coefficient("f", [0,0,-10], type=VECTOR)
 weakForm(u, "inner( (lambda * div(u) .* [1 0 0; 0 1 0; 0 0 1] + mu .* (grad(u) + transpose(grad(u)))), grad(v)) - dot(f,v)")
-# [TrackedFloat64(1) TrackedFloat64(0) TrackedFloat64(0); TrackedFloat64(0) TrackedFloat64(1) TrackedFloat64(0); TrackedFloat64(0) TrackedFloat64(0) TrackedFloat64(1)]
-# [1 0 0; 0 1 0; 0 0 1]
 
 exportCode("elasticitycode")
 
@@ -68,8 +65,8 @@ println("time: "*string(t))
 # Write result to vtk file
 #output_values(u, "elasticity", format="vtk");
 
-finalize_finch() # Finish writing and close any files
+finalizeFinch() # Finish writing and close any files
 
-println("u_z at end "*string(maximum(u.values[3,Finch.grid_data.bdry[2][3]])));
+#println("u_z at end "*string(maximum(u.values[3,Finch.grid_data.bdry[2][3]])));
 
 write_log_to_file()
