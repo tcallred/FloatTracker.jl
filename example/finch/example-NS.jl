@@ -11,7 +11,7 @@ include("../../src/FloatTracker.jl")
 using .FloatTracker: write_log_to_file, set_inject_nan, set_logger, set_exclude_stacktrace
 fns = []
 set_inject_nan(true, 1, 1, fns)
-set_logger("tf-NS", 5)
+set_logger(filename="tf-NS", buffersize=5)
 set_exclude_stacktrace([:prop])
 
 ### If not, use these four lines (working from the examples directory) ###
@@ -21,7 +21,7 @@ set_exclude_stacktrace([:prop])
 # end
 ##########################################################################
 
-init_finch("NS");
+initFinch("NS");
 
 # Optionally generate a log
 useLog("NSlog")

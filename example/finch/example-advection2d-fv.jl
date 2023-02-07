@@ -38,11 +38,11 @@ if use_unstructured
     # This is a 0.1 x 0.3 rectangle domain
     mesh("src/examples/utriangle.msh")
     mesh("src/examples/uquad.msh")
-    
+
     add_boundary_ID(2, (x,y) -> (x >= 0.1));
     add_boundary_ID(3, (x,y) -> (y <= 0));
     add_boundary_ID(4, (x,y) -> (y >= 0.3));
-    
+
 else
     # a uniform grid of quads on a 0.1 x 0.3 rectangle domain
     mesh(QUADMESH, elsperdim=[15, 45], bids=4, interval=[0, 0.1, 0, 0.3])
