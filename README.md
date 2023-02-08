@@ -89,3 +89,15 @@ PROP NaN,4.0 -> max -> NaN
 This is an example of a program where two different implmentations can result in a different answer when dealing with `NaN` in the input. In a larger program, the presence of `NaN` can produce incorrect results. 
 This tool may be useful for debugging those sorts of issues. 
 
+## Known operations that can kill a NaN
+
+```
+1.0 ^  NaN → 1.0
+NaN ^  0.0 → 1.0
+1.0 <  NaN → false
+1.0 >  NaN → false
+1.0 <= NaN → false
+1.0 >= NaN → false
+```
+
+Most of the time comparison operators are what kill a NaN. But `^` can kill NaNs too.

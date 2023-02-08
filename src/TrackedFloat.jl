@@ -58,6 +58,7 @@ for TrackedFloatN in (:TrackedFloat16, :TrackedFloat32, :TrackedFloat64)
   Base.promote_rule(::Type{Bool},::Type{$TrackedFloatN}) = $TrackedFloatN
 end
 
+# Binary operators
 for O in (:(+), :(-), :(*), :(/), :(^), :min, :max, :rem)
     @eval function Base.$O(x::$TrackedFloatN,y::$TrackedFloatN)
       (r, injected) = run_or_inject($O, [x.val, y.val])
@@ -66,6 +67,7 @@ for O in (:(+), :(-), :(*), :(/), :(^), :min, :max, :rem)
     end
 end
 
+# Unary operators
 for O in (:(-), :(+),
           :sign,
           :prevfloat, :nextfloat,
