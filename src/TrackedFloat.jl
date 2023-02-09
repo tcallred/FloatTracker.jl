@@ -25,95 +25,114 @@ end
   end
 end
 
+# LinearAlgebra library fixes
+# floatmin2(::Type{TrackedFloat32}) = reinterpret(Float32, 0x26000000)
+# floatmin2(::Type{TrackedFloat64}) = reinterpret(Float64, 0x21a0000000000000)
+
 for TrackedFloatN in (:TrackedFloat16, :TrackedFloat32, :TrackedFloat64)
 
-# FloatN is the base float type derived from TrackedFloatN
-@eval FloatN = $(Symbol("Float", string(TrackedFloatN)[end-1:end]))
+  # FloatN is the base float type derived from TrackedFloatN
+  @eval FloatN = $(Symbol("Float", string(TrackedFloatN)[end-1:end]))
 
-@eval begin
-  struct $TrackedFloatN <: AbstractTrackedFloat
-    val::$FloatN
+  @eval begin
+    struct $TrackedFloatN <: AbstractTrackedFloat
+      val::$FloatN
+    end
+
+    Base.Float64(x::$TrackedFloatN) = Float64(x.val)
+    Base.Float32(x::$TrackedFloatN) = Float32(x.val)
+    Base.Float16(x::$TrackedFloatN) = Float16(x.val)
+    Base.Int64(x::$TrackedFloatN) = Int64(x.val)
+    Base.Int32(x::$TrackedFloatN) = Int32(x.val)
+    Base.Int16(x::$TrackedFloatN) = Int16(x.val)
+
+    Base.bitstring(x::$TrackedFloatN) = bitstring(x.val)
+    Base.show(io::IO,x::$TrackedFloatN) = print(io, $TrackedFloatN,"(",string(x.val),")")
+
+    # $TrackedFloatN(x::AbstractFloat) = $TrackedFloatN(x)
+    # $TrackedFloatN(x::Integer) = $TrackedFloatN(x)
+    $TrackedFloatN(x::Rational{}) = $TrackedFloatN($FloatN(x))
+    $TrackedFloatN(x::$TrackedFloatN) = $TrackedFloatN(x.val)
+    $TrackedFloatN(x::Bool) = $TrackedFloatN($FloatN(x))
+
+    Base.promote_rule(::Type{<:Integer},::Type{$TrackedFloatN}) = $TrackedFloatN
+    Base.promote_rule(::Type{Float64},::Type{$TrackedFloatN}) = $TrackedFloatN
+    Base.promote_rule(::Type{Float32},::Type{$TrackedFloatN}) = $TrackedFloatN
+    Base.promote_rule(::Type{Float16},::Type{$TrackedFloatN}) = $TrackedFloatN
+    Base.promote_rule(::Type{Bool},::Type{$TrackedFloatN}) = $TrackedFloatN
+
+    floatmin2($TrackedFloatN) = floatmin2($FloatN)
   end
 
-  Base.Float64(x::$TrackedFloatN) = Float64(x.val)
-  Base.Float32(x::$TrackedFloatN) = Float32(x.val)
-  Base.Float16(x::$TrackedFloatN) = Float16(x.val)
-  Base.Int64(x::$TrackedFloatN) = Int64(x.val)
-  Base.Int32(x::$TrackedFloatN) = Int32(x.val)
-  Base.Int16(x::$TrackedFloatN) = Int16(x.val)
-
-  Base.bitstring(x::$TrackedFloatN) = bitstring(x.val)
-  Base.show(io::IO,x::$TrackedFloatN) = print(io, $TrackedFloatN,"(",string(x.val),")")
-
-  # $TrackedFloatN(x::AbstractFloat) = $TrackedFloatN(x)
-  # $TrackedFloatN(x::Integer) = $TrackedFloatN(x)
-  $TrackedFloatN(x::Rational{}) = $TrackedFloatN($FloatN(x))
-  $TrackedFloatN(x::$TrackedFloatN) = $TrackedFloatN(x.val)
-  $TrackedFloatN(x::Bool) = $TrackedFloatN($FloatN(x))
-
-  Base.promote_rule(::Type{<:Integer},::Type{$TrackedFloatN}) = $TrackedFloatN
-  Base.promote_rule(::Type{Float64},::Type{$TrackedFloatN}) = $TrackedFloatN
-  Base.promote_rule(::Type{Float32},::Type{$TrackedFloatN}) = $TrackedFloatN
-  Base.promote_rule(::Type{Float16},::Type{$TrackedFloatN}) = $TrackedFloatN
-  Base.promote_rule(::Type{Bool},::Type{$TrackedFloatN}) = $TrackedFloatN
-end
-
-# Binary operators
-for O in (:(+), :(-), :(*), :(/), :(^), :min, :max, :rem)
+  # Binary operators
+  for O in (:(+), :(-), :(*), :(/), :(^), :min, :max, :rem)
     @eval function Base.$O(x::$TrackedFloatN,y::$TrackedFloatN)
       (r, injected) = run_or_inject($O, [x.val, y.val])
       check_error($O, [x.val, y.val], r, injected)
       $TrackedFloatN(r)
     end
-end
+  end
 
-# Unary operators
-for O in (:(-), :(+),
-          :sign,
-          :prevfloat, :nextfloat,
-          :round, :trunc, :ceil, :floor,
-          :inv, :abs, :sqrt, :cbrt,
-          :exp, :expm1, :exp2, :exp10,
-          :log, :log1p, :log2, :log10,
-          :rad2deg, :deg2rad, :mod2pi, :rem2pi,
-          :sin, :cos, :tan, :csc, :sec, :cot,
-          :asin, :acos, :atan, :acsc, :asec, :acot,
-          :sinh, :cosh, :tanh, :csch, :sech, :coth,
-          :asinh, :acosh, :atanh, :acsch, :asech, :acoth,
-          :sinc, :sinpi, :cospi,
-          :sind, :cosd, :tand, :cscd, :secd, :cotd,
-          :asind, :acosd, :atand, :acscd, :asecd, :acotd
-         )
+  # Unary operators
+  for O in (:(-), :(+),
+            :sign,
+            :prevfloat, :nextfloat,
+            :round, :trunc, :ceil, :floor,
+            :inv, :abs, :sqrt, :cbrt,
+            :exp, :expm1, :exp2, :exp10,
+            :log, :log1p, :log2, :log10,
+            :rad2deg, :deg2rad, :mod2pi, :rem2pi,
+            :sin, :cos, :tan, :csc, :sec, :cot,
+            :asin, :acos, :atan, :acsc, :asec, :acot,
+            :sinh, :cosh, :tanh, :csch, :sech, :coth,
+            :asinh, :acosh, :atanh, :acsch, :asech, :acoth,
+            :sinc, :sinpi, :cospi,
+            :sind, :cosd, :tand, :cscd, :secd, :cotd,
+            :asind, :acosd, :atand, :acscd, :asecd, :acotd,
+            )
     @eval function Base.$O(x::$TrackedFloatN)
       (r, injected) = run_or_inject($O, [x.val])
       check_error($O, [x.val], r, injected)
       $TrackedFloatN(r)
     end
-end
+  end
 
-@eval function Base.round(x::$TrackedFloatN, digits::RoundingMode)
-  r = round(x.val, digits)
-  check_error(:round, [x.val], r)
-  $TrackedFloatN(r)
-end
+  # Type-based functions
+  for fn in (:floatmin, :floatmax)
+    @eval function Base.$fn($TrackedFloatN)
+      $fn($FloatN)
+    end
+  end
 
-
-for O in (:isnan, :isinf, :issubnormal)
-  @eval function Base.$O(x::$TrackedFloatN)
-    r = $O(x.val)
-    check_error($O, [x.val], r)
+  @eval function Base.trunc(t::Type, x::$TrackedFloatN)
+    r = trunc(t, x.val)
+    check_error(:trunc, [x.val], r)
     r
   end
-end
 
-@eval Base.eps(::Type{$TrackedFloatN}) = eps($FloatN)
+  @eval function Base.round(x::$TrackedFloatN, digits::RoundingMode)
+    r = round(x.val, digits)
+    check_error(:round, [x.val], r)
+    $TrackedFloatN(r)
+  end
 
-for O in (:(<), :(<=), :(==))
+
+  for O in (:isnan, :isinf, :issubnormal)
+    @eval function Base.$O(x::$TrackedFloatN)
+      r = $O(x.val)
+      check_error($O, [x.val], r)
+      r
+    end
+  end
+
+  @eval Base.eps(::Type{$TrackedFloatN}) = eps($FloatN)
+
+  for O in (:(<), :(<=), :(==))
     @eval function Base.$O(x::$TrackedFloatN, y::$TrackedFloatN)
       r = $O(x.val, y.val)
       check_error($O, [x.val, y.val], r)
       r
     end
-end
+  end
 
 end
