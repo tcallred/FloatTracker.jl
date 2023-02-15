@@ -39,6 +39,9 @@ for TrackedFloatN in (:TrackedFloat16, :TrackedFloat32, :TrackedFloat64)
       val::$FloatN
     end
 
+    # Could we be loosing our tracking ability if a program uses one of these to
+    # cast a float? Would we want to have our own explicit TrackedFloat→Float
+    # unwrapper?
     Base.Float64(x::$TrackedFloatN) = Float64(x.val)
     Base.Float32(x::$TrackedFloatN) = Float32(x.val)
     Base.Float16(x::$TrackedFloatN) = Float16(x.val)
@@ -60,8 +63,6 @@ for TrackedFloatN in (:TrackedFloat16, :TrackedFloat32, :TrackedFloat64)
     Base.promote_rule(::Type{Float32},::Type{$TrackedFloatN}) = $TrackedFloatN
     Base.promote_rule(::Type{Float16},::Type{$TrackedFloatN}) = $TrackedFloatN
     Base.promote_rule(::Type{Bool},::Type{$TrackedFloatN}) = $TrackedFloatN
-
-    floatmin2($TrackedFloatN) = floatmin2($FloatN)
   end
 
   # Binary operators
@@ -70,6 +71,21 @@ for TrackedFloatN in (:TrackedFloat16, :TrackedFloat32, :TrackedFloat64)
       (r, injected) = run_or_inject($O, [x.val, y.val])
       check_error($O, [x.val, y.val], r, injected)
       $TrackedFloatN(r)
+    end
+
+    # Hack to appease type dispatch
+    for NumType in (:Number, :Integer, :Float16, :Float32, :Float64)
+      @eval function Base.$O(x::$NumType, y::$TrackedFloatN)
+        (r, injected) = run_or_inject($O, [x, y.val])
+        check_error($O, [x, y.val], r, injected)
+        $TrackedFloatN(r)
+      end
+
+      @eval function Base.$O(x::$TrackedFloatN, y::$NumType)
+        (r, injected) = run_or_inject($O, [x.val, y])
+        check_error($O, [x.val, y], r, injected)
+        $TrackedFloatN(r)
+      end
     end
   end
 
@@ -98,11 +114,11 @@ for TrackedFloatN in (:TrackedFloat16, :TrackedFloat32, :TrackedFloat64)
   end
 
   # Type-based functions
-  for fn in (:floatmin, :floatmax)
-    @eval function Base.$fn($TrackedFloatN)
-      $fn($FloatN)
-    end
+  for fn in (:floatmin, :floatmax, :eps)
+    @eval Base.$fn(::Type{$TrackedFloatN}) = $fn($FloatN)
   end
+
+  @eval Base.one(::Type{$TrackedFloatN}) = $TrackedFloatN(one($FloatN))
 
   @eval function Base.trunc(t::Type, x::$TrackedFloatN)
     r = trunc(t, x.val)
@@ -124,8 +140,6 @@ for TrackedFloatN in (:TrackedFloat16, :TrackedFloat32, :TrackedFloat64)
       r
     end
   end
-
-  @eval Base.eps(::Type{$TrackedFloatN}) = eps($FloatN)
 
   for O in (:(<), :(<=), :(==))
     @eval function Base.$O(x::$TrackedFloatN, y::$TrackedFloatN)
