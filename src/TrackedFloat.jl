@@ -74,7 +74,7 @@ for TrackedFloatN in (:TrackedFloat16, :TrackedFloat32, :TrackedFloat64)
     end
 
     # Hack to appease type dispatch
-    for NumType in (:Number, :Integer, :Float16, :Float32, :Float64)
+    for NumType in (:Bool, :Number, :Integer, :Float16, :Float32, :Float64)
       @eval function Base.$O(x::$NumType, y::$TrackedFloatN)
         (r, injected) = run_or_inject($O, [x, y.val])
         check_error($O, [x, y.val], r, injected)
