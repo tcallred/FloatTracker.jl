@@ -66,7 +66,7 @@ for TrackedFloatN in (:TrackedFloat16, :TrackedFloat32, :TrackedFloat64)
   end
 
   # Binary operators
-  for O in (:(+), :(-), :(*), :(/), :(^), :min, :max, :rem)
+  for O in (:(+), :(-), :(*), :(/), :(^), :min, :max, :rem, :ldexp)
     @eval function Base.$O(x::$TrackedFloatN,y::$TrackedFloatN)
       (r, injected) = run_or_inject($O, [x.val, y.val])
       check_error($O, [x.val, y.val], r, injected)
@@ -96,6 +96,7 @@ for TrackedFloatN in (:TrackedFloat16, :TrackedFloat32, :TrackedFloat64)
             :round, :trunc, :ceil, :floor,
             :inv, :abs, :sqrt, :cbrt,
             :exp, :expm1, :exp2, :exp10,
+            :exponent,
             :log, :log1p, :log2, :log10,
             :rad2deg, :deg2rad, :mod2pi, :rem2pi,
             :sin, :cos, :tan, :csc, :sec, :cot,
