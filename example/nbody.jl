@@ -3,7 +3,7 @@ using .FloatTracker: TrackedFloat64, FunctionRef, write_log_to_file, set_inject_
 
 set_logger(filename="nbody_stuffs", buffersize=20, cstg=true, cstgArgs=false, cstgLineNum=false)
 fns = [FunctionRef(:run_simulation, Symbol("nbody_simulation_result.jl"))]
-set_inject_nan(false, 10, 1, fns)
+set_inject_nan(true, 10, 1, fns)
 # set_exclude_stacktrace([:prop])
 
 println("FloatTracker configured; loading NBodySimulator...")
@@ -16,9 +16,10 @@ using StaticArrays
 println("Configuring massive bodies...")
 body1 = MassBody(SVector(TrackedFloat64(0.0), TrackedFloat64(1.0), TrackedFloat64(0.0)), SVector(TrackedFloat64(5.775e-6), TrackedFloat64(0.0), TrackedFloat64(0.0)), TrackedFloat64(2.0))
 body2 = MassBody(SVector(TrackedFloat64(0.0), TrackedFloat64(-1.0), TrackedFloat64(0.0)), SVector(TrackedFloat64(-5.775e-6), TrackedFloat64(0.0), TrackedFloat64(0.0)), TrackedFloat64(2.0))
+body3 = MassBody(SVector(TrackedFloat64(0.0), TrackedFloat64(-1.0), TrackedFloat64(1.0)), SVector(TrackedFloat64(-5.775e-6), TrackedFloat64(0.0), TrackedFloat64(0.0)), TrackedFloat64(5.0))
 
 # This version is really close to the second body, and it crashes
-body3 = MassBody(SVector(TrackedFloat64(0.0), TrackedFloat64(-1.0), TrackedFloat64(0.1)), SVector(TrackedFloat64(-5.775e-6), TrackedFloat64(0.0), TrackedFloat64(0.0)), TrackedFloat64(5.0))
+# body3 = MassBody(SVector(TrackedFloat64(0.0), TrackedFloat64(-1.0), TrackedFloat64(0.1)), SVector(TrackedFloat64(-5.775e-6), TrackedFloat64(0.0), TrackedFloat64(0.0)), TrackedFloat64(5.0))
 
 # This configuration of the third body (pretty identical to the second body) makes it kill NaNs
 # body3 = MassBody(SVector(TrackedFloat64(0.0), TrackedFloat64(-1.0), TrackedFloat64(0.0)), SVector(TrackedFloat64(-5.775e-6), TrackedFloat64(0.0), TrackedFloat64(0.0)), TrackedFloat64(5.0))
