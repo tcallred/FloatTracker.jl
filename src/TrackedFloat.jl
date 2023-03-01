@@ -16,7 +16,7 @@ end
   end
 end
 
-@inline function run_or_inject(fn, args)
+@inline function run_or_inject(fn, args...)
   if should_inject(injector)
     decrment_injections(injector)
     (NaN, true)
@@ -24,10 +24,6 @@ end
     (fn(args...), false)
   end
 end
-
-# LinearAlgebra library fixes
-# floatmin2(::Type{TrackedFloat32}) = reinterpret(Float32, 0x26000000)
-# floatmin2(::Type{TrackedFloat64}) = reinterpret(Float64, 0x21a0000000000000)
 
 for TrackedFloatN in (:TrackedFloat16, :TrackedFloat32, :TrackedFloat64)
 
@@ -65,10 +61,42 @@ for TrackedFloatN in (:TrackedFloat16, :TrackedFloat32, :TrackedFloat64)
     Base.promote_rule(::Type{Bool},::Type{$TrackedFloatN}) = $TrackedFloatN
   end
 
+  # Use this where an int got wrapped with a TrackedFloat
+  @eval function trunc_if_int(y::$TrackedFloatN)
+    t = trunc(Int, y.val)
+    if abs(y.val - t) < floatmin(y)
+      return t
+    else
+      error("Unable to safely truncate $y into an int")
+    end
+  end
+
+  @eval function Base.ldexp(x::$TrackedFloatN, y::$TrackedFloatN)
+    y_as_int = trunc_if_int(y)
+    (r, injected) = run_or_inject(ldexp, x.val, y_as_int)
+    check_error(ldexp, [x.val, y_as_int], r, injected)
+    $TrackedFloatN(r)
+  end
+
+  for NumType in (:Number, :Integer, :Float16, :Float32, :Float64)
+    @eval function Base.ldexp(x::$NumType, y::$TrackedFloatN)
+      y_as_int = trunc_if_int(y)
+      (r, injected) = run_or_inject(ldexp, x, y_as_int)
+      check_error(ldexp, [x, y_as_int], r, injected)
+      $TrackedFloatN(r)
+    end
+
+    @eval function Base.ldexp(x::$TrackedFloatN, y::$NumType)
+      (r, injected) = run_or_inject(ldexp, x.val, y)
+      check_error(ldexp, [x.val, y], r, injected)
+      $TrackedFloatN(r)
+    end
+  end
+
   # Binary operators
-  for O in (:(+), :(-), :(*), :(/), :(^), :min, :max, :rem, :ldexp)
+  for O in (:(+), :(-), :(*), :(/), :(^), :min, :max, :rem)
     @eval function Base.$O(x::$TrackedFloatN,y::$TrackedFloatN)
-      (r, injected) = run_or_inject($O, [x.val, y.val])
+      (r, injected) = run_or_inject($O, x.val, y.val)
       check_error($O, [x.val, y.val], r, injected)
       $TrackedFloatN(r)
     end
@@ -76,17 +104,30 @@ for TrackedFloatN in (:TrackedFloat16, :TrackedFloat32, :TrackedFloat64)
     # Hack to appease type dispatch
     for NumType in (:Bool, :Number, :Integer, :Float16, :Float32, :Float64)
       @eval function Base.$O(x::$NumType, y::$TrackedFloatN)
-        (r, injected) = run_or_inject($O, [x, y.val])
+        (r, injected) = run_or_inject($O, x, y.val)
         check_error($O, [x, y.val], r, injected)
         $TrackedFloatN(r)
       end
 
       @eval function Base.$O(x::$TrackedFloatN, y::$NumType)
-        (r, injected) = run_or_inject($O, [x.val, y])
+        (r, injected) = run_or_inject($O, x.val, y)
         check_error($O, [x.val, y], r, injected)
         $TrackedFloatN(r)
       end
     end
+  end
+
+  # Base.decompose seems to be an internal function. Moreover, it always returns
+  # a tuple of integers. See function def:
+  # ~/.asdf/installs/julia/1.8.5/share/julia/base/float.jl
+  #
+  # Because of this, we treat any call to decompose with a NaN as a kill event.
+
+  @eval function Base.decompose(x::$TrackedFloatN)
+    if isnan(x)
+      event("decompose", [x], (0,0,0)) # Log the kill
+    end
+    Base.decompose(x.val)
   end
 
   # Unary operators
@@ -108,7 +149,7 @@ for TrackedFloatN in (:TrackedFloat16, :TrackedFloat32, :TrackedFloat64)
             :asind, :acosd, :atand, :acscd, :asecd, :acotd,
             )
     @eval function Base.$O(x::$TrackedFloatN)
-      (r, injected) = run_or_inject($O, [x.val])
+      (r, injected) = run_or_inject($O, x.val)
       check_error($O, [x.val], r, injected)
       $TrackedFloatN(r)
     end
