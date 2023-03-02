@@ -9,9 +9,10 @@ function set_inject_nan(should_inject::Bool, odds::Int = 10, n_inject = 1, funct
   injector.functions = functions
 end
 
-@inline function check_error(fn, args, result, injected::Bool = false)
+@inline function check_error(fn, injected::Bool, result, args...)
   if any(v -> isfloaterror(v), [args..., result])
-    e = event(string(fn), args, result, injected)
+    # args is a tuple; we call `collect` to get a Vector without promoting the types
+    e = event(string(fn), collect(args), result, injected)
     log_event(e)
   end
 end
@@ -75,7 +76,7 @@ for TrackedFloatN in (:TrackedFloat16, :TrackedFloat32, :TrackedFloat64)
     @eval function Base.ldexp(x::$NumType, y::$TrackedFloatN)
       y_as_int = trunc_if_int(y)
       (r, injected) = run_or_inject(ldexp, x, y_as_int)
-      check_error(ldexp, [x, y_as_int], r, injected)
+      check_error(ldexp, injected, r, x, y_as_int)
       $TrackedFloatN(r)
     end
   end
@@ -84,7 +85,7 @@ for TrackedFloatN in (:TrackedFloat16, :TrackedFloat32, :TrackedFloat64)
   for O in (:(+), :(-), :(*), :(/), :(^), :min, :max, :rem)
     @eval function Base.$O(x::$TrackedFloatN,y::$TrackedFloatN)
       (r, injected) = run_or_inject($O, x.val, y.val)
-      check_error($O, [x.val, y.val], r, injected)
+      check_error($O, injected, r, x.val, y.val)
       $TrackedFloatN(r)
     end
 
@@ -92,13 +93,13 @@ for TrackedFloatN in (:TrackedFloat16, :TrackedFloat32, :TrackedFloat64)
     for NumType in (:Bool, :Number, :Integer, :Float16, :Float32, :Float64)
       @eval function Base.$O(x::$NumType, y::$TrackedFloatN)
         (r, injected) = run_or_inject($O, x, y.val)
-        check_error($O, [x, y.val], r, injected)
+        check_error($O, injected, r, x, y.val)
         $TrackedFloatN(r)
       end
 
       @eval function Base.$O(x::$TrackedFloatN, y::$NumType)
         (r, injected) = run_or_inject($O, x.val, y)
-        check_error($O, [x.val, y], r, injected)
+        check_error($O, injected, r, x.val, y)
         $TrackedFloatN(r)
       end
     end
@@ -137,7 +138,7 @@ for TrackedFloatN in (:TrackedFloat16, :TrackedFloat32, :TrackedFloat64)
             )
     @eval function Base.$O(x::$TrackedFloatN)
       (r, injected) = run_or_inject($O, x.val)
-      check_error($O, [x.val], r, injected)
+      check_error($O, injected, r, x.val)
       $TrackedFloatN(r)
     end
   end
@@ -151,13 +152,13 @@ for TrackedFloatN in (:TrackedFloat16, :TrackedFloat32, :TrackedFloat64)
 
   @eval function Base.trunc(t::Type, x::$TrackedFloatN)
     r = trunc(t, x.val)
-    check_error(:trunc, [x.val], r)
+    check_error(:trunc, false, r, x.val)
     r
   end
 
   @eval function Base.round(x::$TrackedFloatN, digits::RoundingMode)
     r = round(x.val, digits)
-    check_error(:round, [x.val], r)
+    check_error(:round, false, r, x.val)
     $TrackedFloatN(r)
   end
 
@@ -165,7 +166,7 @@ for TrackedFloatN in (:TrackedFloat16, :TrackedFloat32, :TrackedFloat64)
   for O in (:isnan, :isinf, :issubnormal)
     @eval function Base.$O(x::$TrackedFloatN)
       r = $O(x.val)
-      check_error($O, [x.val], r)
+      check_error($O, false, r, x.val)
       r
     end
   end
@@ -173,7 +174,7 @@ for TrackedFloatN in (:TrackedFloat16, :TrackedFloat32, :TrackedFloat64)
   for O in (:(<), :(<=), :(==))
     @eval function Base.$O(x::$TrackedFloatN, y::$TrackedFloatN)
       r = $O(x.val, y.val)
-      check_error($O, [x.val, y.val], r)
+      check_error($O, false, r, x.val, y.val)
       r
     end
   end
