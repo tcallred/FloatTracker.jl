@@ -71,24 +71,11 @@ for TrackedFloatN in (:TrackedFloat16, :TrackedFloat32, :TrackedFloat64)
     end
   end
 
-  @eval function Base.ldexp(x::$TrackedFloatN, y::$TrackedFloatN)
-    y_as_int = trunc_if_int(y)
-    (r, injected) = run_or_inject(ldexp, x.val, y_as_int)
-    check_error(ldexp, [x.val, y_as_int], r, injected)
-    $TrackedFloatN(r)
-  end
-
   for NumType in (:Number, :Integer, :Float16, :Float32, :Float64)
     @eval function Base.ldexp(x::$NumType, y::$TrackedFloatN)
       y_as_int = trunc_if_int(y)
       (r, injected) = run_or_inject(ldexp, x, y_as_int)
       check_error(ldexp, [x, y_as_int], r, injected)
-      $TrackedFloatN(r)
-    end
-
-    @eval function Base.ldexp(x::$TrackedFloatN, y::$NumType)
-      (r, injected) = run_or_inject(ldexp, x.val, y)
-      check_error(ldexp, [x.val, y], r, injected)
       $TrackedFloatN(r)
     end
   end
