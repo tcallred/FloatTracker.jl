@@ -1,3 +1,5 @@
+using Base.StackTraces
+
 struct FunctionRef
   name::Symbol
   file::Symbol
@@ -54,9 +56,9 @@ function should_inject(i::Injector)::Bool
     in_right_fn::Bool = if isempty(i.functions)
       true
     else
-      in_functions = function (st)
-        file = Symbol(split(String(st.file), ['/', '\\'])[end])
-        fr = FunctionRef(st.func, file)
+      in_functions = function (frame::StackTraces.StackFrame)
+        file = Symbol(split(String(frame.file), ['/', '\\'])[end])
+        fr = FunctionRef(frame.func, file)
         fr in i.functions
       end
       any(in_functions, stacktrace())
