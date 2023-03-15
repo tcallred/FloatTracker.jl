@@ -19,7 +19,7 @@ end
 
 @inline function run_or_inject(fn, args...)
   if should_inject(injector)
-    decrment_injections(injector)
+    decrement_injections(injector)
     (NaN, true)
   else
     (fn(args...), false)

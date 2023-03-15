@@ -3,6 +3,22 @@ struct FunctionRef
   file::Symbol
 end
 
+"""
+Struct describing parameters for injecting NaNs
+
+## Fields
+
+ - `active::Boolean` inject only if true
+
+ - `ninject::Int` maximum number of NaNs to inject; gets decremented every time
+   a NaN gets injected
+
+ - `odds::Int` inject a NaN with 1:odds probability—higher value → rarer to
+   inject
+
+ - `functions:Array{FunctionRef}` if given, only inject NaNs when within these
+   functions; default is to not discriminate on functions
+"""
 mutable struct Injector
   active::Bool
   odds::Int
@@ -10,13 +26,32 @@ mutable struct Injector
   functions::Array{FunctionRef}
 end
 
-function should_inject(i::Injector)
+"""
+    should_inject(i::Injector)
+
+Return whether or not we should inject a `NaN`.
+
+Decision process:
+
+ - Checks whether or not the given injector is active.
+
+ - Checks that there are some NaNs remaining to inject.
+
+ - Checks that we're inside the scope of a function in `Injector.functions`.
+   (Vacuously true if no functions given.)
+
+ - Rolls an `Injector.odds`-sided die; if 1, inject a NaN, otherwise, don't do
+   anything.
+"""
+function should_inject(i::Injector)::Bool
   if i.active && i.ninject > 0
     roll = rand(1:i.odds)
+
     if roll != 1
       return false
     end
-    in_right_fn = if isempty(i.functions)
+
+    in_right_fn::Bool = if isempty(i.functions)
       true
     else
       in_functions = function (st)
@@ -26,11 +61,13 @@ function should_inject(i::Injector)
       end
       any(in_functions, stacktrace())
     end
+
     return roll == 1 && in_right_fn
   end
+
   return false
 end
 
-function decrment_injections(i::Injector)
+function decrement_injections(i::Injector)
   i.ninject = i.ninject - 1
 end
