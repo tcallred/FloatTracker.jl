@@ -110,3 +110,13 @@ NaN ^  0.0 → 1.0
 ```
 
 Most of the time comparison operators are what kill a NaN. But `^` can kill NaNs too.
+
+# License
+
+MIT License
+
+# Authors
+
+ - [Taylor Allred](https://github.com/tcallred)
+ - [Ashton Wiersdorf](https://github.com/ashton314)
+ - [Ben Greenman](https://github.com/bennn)
