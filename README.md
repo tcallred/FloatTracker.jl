@@ -4,7 +4,13 @@ Track `NaN` generation and propogation in your code.
 
 Inspired by [Sherlogs.jl](https://github.com/milankl/Sherlogs.jl).
 
-FloatTracker is a library that provides three new types: `TrackedFloat16`, `TrackedFloat32`, and `TrackedFloat64`. 
+# Examples
+
+Examples have been moved from this repository to an [example repository](https://github.com/ashton314/FloatTrackerExamples)—this allows us to keep the dependencies in this repository nice and light.
+
+# Description
+
+`FloatTracker.jl` is a library that provides three new types: `TrackedFloat16`, `TrackedFloat32`, and `TrackedFloat64`. 
 These behave just like their `FloatN` counterparts except that they detect and log instances of `NaN`. 
 
 If a `NaN` appears in a primitive floating point operation (such as `+`, `-`, `abs`, `sin` etc.), it generates an event:
@@ -16,8 +22,9 @@ If a `NaN` appears in a primitive floating point operation (such as `+`, `-`, `a
 These events are then stored in a buffered log and can be written out to a file during or after the execution of a program. 
 
 ## Example
+
 ```julia
-using .FloatTracker: TrackedFloat16, write_out_logs, set_logger
+using FloatTracker: TrackedFloat16, write_out_logs, set_logger
 
 set_logger(filename="max", buffersize=1)
 
@@ -48,10 +55,12 @@ println("Result: $(res2)")
 
 write_out_logs()
 ```
+
 This code shows two different implementations of a max-element function. 
 One uses the builtin `<` operator and the other uses Julia's `max` function. When encountering a `NaN` the `<` will "kill" it (always returning `false`) and the `max` function will "prop" it (always returning back the `NaN`). 
 
 We can see this in the log that produced by FloatTracker when running this file.
+
 ```
 KILL 1.0,NaN -> < -> false
  	check_error at TrackedFloat.jl:14 [inlined]
