@@ -1,5 +1,7 @@
 # FloatTracker.jl
 
+*Warning: This repo was part of a Master's project and has been archived. The current project is hosted and maintained at https://github.com/utahplt/FloatTracker.jl*
+
 Track `NaN` generation and propogation in your code. 
 
 Inspired by [Sherlogs.jl](https://github.com/milankl/Sherlogs.jl).
